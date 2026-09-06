@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BEST_SCORE_KEY, COLORS, GAME_WIDTH } from "../constants";
 import { Player } from "../entities/Player";
+import { Bomb } from "../entities/Bomb";
 import { createGameTextures } from "../graphics/createGameTextures";
 import { PlayerCommandSource } from "../input/PlayerCommands";
 import { CombatSystem, type ProjectileImpact } from "../systems/CombatSystem";
@@ -46,12 +47,14 @@ export class GameScene extends Phaser.Scene {
     const weapon = new PlayerWeapon(this);
     this.player = new Player(this, GAME_WIDTH / 2, PLAYER_Y, commands, weapon);
     this.enemySpawner = new EnemySpawner(this, (wave) => this.handleWaveCleared(wave));
+    const bombs = this.physics.add.group({ classType: Bomb });
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
     this.data.set({
       [RUN_DATA.player]: this.player,
       [RUN_DATA.weapon]: weapon,
       [RUN_DATA.enemies]: this.enemySpawner.group,
+      [RUN_DATA.bombs]: bombs,
       [RUN_DATA.coreLineY]: CORE_Y - 18,
       [RUN_DATA.scoreMultiplier]: 1,
     });

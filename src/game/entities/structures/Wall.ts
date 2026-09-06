@@ -4,7 +4,6 @@ import { RUN_DATA } from "../../RunData";
 import { OutpostStructure } from "./OutpostStructure";
 
 const INTERCEPT_BEFORE_CORE_PX = 28;
-const SLOT_HALF_WIDTH = 89;
 
 /** Defensive structure. Its collision behaviour will be added with structure hitboxes. */
 export class Wall extends OutpostStructure {
@@ -30,8 +29,7 @@ export class Wall extends OutpostStructure {
     const coreLineY = this.scene.data.get(RUN_DATA.coreLineY) as number;
     const enemy = (enemies.getChildren() as Enemy[]).find(
       (candidate) =>
-        candidate.hasReached(coreLineY - INTERCEPT_BEFORE_CORE_PX) &&
-        Math.abs(candidate.x - this.x) <= SLOT_HALF_WIDTH,
+        candidate.hasReached(coreLineY - INTERCEPT_BEFORE_CORE_PX)
     );
     if (!enemy) {
       return;
