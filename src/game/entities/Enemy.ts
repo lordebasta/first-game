@@ -7,9 +7,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite implements Hittable {
     super(scene, x, y, "enemy");
   }
 
-  spawn(x: number, y: number, speed: number): void {
+  spawn(x: number, y: number): void {
     this.enableBody(true, x, y, true, true);
-    this.setVelocity(0, speed);
+    this.setVelocity(0, 0);
+  }
+
+  moveBy(x: number, y: number): void {
+    this.setPosition(this.x + x, this.y + y);
+    this.body?.reset(this.x, this.y);
   }
 
   hasReached(y: number): boolean {
