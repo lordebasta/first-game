@@ -1,7 +1,8 @@
 import { COLORS } from "../../constants";
 import { Player } from "../Player";
 import { PlayerWeapon } from "../../systems/PlayerWeapon";
-import { OutpostStructure, type StructureContext } from "./OutpostStructure";
+import { RUN_DATA } from "../../RunData";
+import { OutpostStructure } from "./OutpostStructure";
 
 export class PowerPlant extends OutpostStructure {
   static readonly definition = {
@@ -11,19 +12,9 @@ export class PowerPlant extends OutpostStructure {
     color: COLORS.accent,
   } as const;
 
-  constructor(
-    scene: Phaser.Scene,
-    x: number,
-    y: number,
-    context: StructureContext,
-  ) {
+  constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, PowerPlant.definition);
-    this.player = context.player;
-    this.weapon = context.weapon;
   }
-
-  private readonly player: Player;
-  private readonly weapon: PlayerWeapon;
 
   protected override onInstall(): void {
     this.player.changeMovementMultiplier(0.2);
@@ -33,5 +24,13 @@ export class PowerPlant extends OutpostStructure {
   protected override onUninstall(): void {
     this.player.changeMovementMultiplier(-0.2);
     this.weapon.changeCooldownMultiplier(0.2);
+  }
+
+  private get player(): Player {
+    return this.scene.data.get(RUN_DATA.player) as Player;
+  }
+
+  private get weapon(): PlayerWeapon {
+    return this.scene.data.get(RUN_DATA.weapon) as PlayerWeapon;
   }
 }

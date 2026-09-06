@@ -10,9 +10,9 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, "projectile");
   }
 
-  launch(x: number, y: number): void {
+  launch(x: number, y: number, horizontalVelocity = 0): void {
     this.enableBody(true, x, y, true, true);
-    this.setVelocity(0, -PROJECTILE_SPEED);
+    this.setVelocity(horizontalVelocity, -PROJECTILE_SPEED);
   }
 
   isOutsidePlayfield(): boolean {

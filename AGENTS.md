@@ -11,6 +11,7 @@ src/
   main.ts                  # bootstrap Phaser e registrazione delle scene
   game/
     constants.ts           # dimensioni, palette e costanti condivise
+    RunData.ts             # chiavi centralizzate del Data Manager della run
     scenes/                # MenuScene, GameScene e GameOverScene
     entities/              # oggetti di gioco con comportamento proprio
       structures/          # una classe per struttura e relativi hook di ciclo di vita

@@ -1,19 +1,28 @@
 import Phaser from "phaser";
 import { PowerPlant } from "./PowerPlant";
 import { Radar } from "./Radar";
-import { type OutpostStructure, type StructureConstructor, type StructureContext } from "./OutpostStructure";
+import { type OutpostStructure, type StructureConstructor } from "./OutpostStructure";
 import { Turret } from "./Turret";
+import { Wall } from "./Wall";
 
-export { type StructureConstructor, type StructureDefinition, type StructureContext } from "./OutpostStructure";
+export { type StructureConstructor, type StructureDefinition } from "./OutpostStructure";
 
-export const STRUCTURE_CLASSES: readonly StructureConstructor[] = [PowerPlant, Turret, Radar];
+export const STRUCTURE_CLASSES: readonly StructureConstructor[] = [
+  Wall,
+  PowerPlant,
+  DroneFactory,
+  Turret,
+  Radar,
+  AmmoDepot,
+];
 
 export function createStructure(
   StructureClass: StructureConstructor,
   scene: Phaser.Scene,
   x: number,
   y: number,
-  context: StructureContext,
 ): OutpostStructure {
-  return new StructureClass(scene, x, y, context);
+  return new StructureClass(scene, x, y);
 }
+import { AmmoDepot } from "./AmmoDepot";
+import { DroneFactory } from "./DroneFactory";

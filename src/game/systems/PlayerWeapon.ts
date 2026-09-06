@@ -9,6 +9,8 @@ export class PlayerWeapon {
 
   private nextShotAt = 0;
   private cooldownMultiplier = 1;
+  private playerShotCount = 0;
+  private areaShotEvery?: number;
 
   constructor(scene: Phaser.Scene) {
     this.projectiles = scene.physics.add.group({ classType: Projectile });
@@ -19,18 +21,27 @@ export class PlayerWeapon {
       return false;
     }
 
-    this.fireFrom(time, origin);
+    this.playerShotCount += 1;
+    if (this.areaShotEvery && this.playerShotCount % this.areaShotEvery === 0) {
+      this.fireAreaShot(time, origin);
+    } else {
+      this.fireFrom(time, origin);
+    }
     this.nextShotAt = time + SHOT_COOLDOWN_MS * this.cooldownMultiplier;
     return true;
   }
 
-  fireFrom(_time: number, origin: Phaser.Math.Vector2): void {
+  fireFrom(_time: number, origin: Phaser.Math.Vector2, horizontalVelocity = 0): void {
     const projectile = this.projectiles.get() as Projectile;
-    projectile.launch(origin.x, origin.y);
+    projectile.launch(origin.x, origin.y, horizontalVelocity);
   }
 
   changeCooldownMultiplier(amount: number): void {
     this.cooldownMultiplier += amount;
+  }
+
+  setAreaShotEvery(value: number | undefined): void {
+    this.areaShotEvery = value;
   }
 
   update(): void {
@@ -40,5 +51,11 @@ export class PlayerWeapon {
         projectile.deactivate();
       }
     }
+  }
+
+  private fireAreaShot(time: number, origin: Phaser.Math.Vector2): void {
+    this.fireFrom(time, origin, -180);
+    this.fireFrom(time, origin);
+    this.fireFrom(time, origin, 180);
   }
 }

@@ -1,5 +1,6 @@
 import { COLORS } from "../../constants";
-import { OutpostStructure, type StructureContext } from "./OutpostStructure";
+import { RUN_DATA } from "../../RunData";
+import { OutpostStructure } from "./OutpostStructure";
 
 export class Radar extends OutpostStructure {
   static readonly definition = {
@@ -9,18 +10,15 @@ export class Radar extends OutpostStructure {
     color: COLORS.player,
   } as const;
 
-  private readonly changeScoreMultiplier: (amount: number) => void;
-
-  constructor(scene: Phaser.Scene, x: number, y: number, context: StructureContext) {
+  constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, Radar.definition);
-    this.changeScoreMultiplier = context.changeScoreMultiplier;
   }
 
   protected override onInstall(): void {
-    this.changeScoreMultiplier(1);
+    this.scene.data.inc(RUN_DATA.scoreMultiplier, 0.1);
   }
 
   protected override onUninstall(): void {
-    this.changeScoreMultiplier(-1);
+    this.scene.data.inc(RUN_DATA.scoreMultiplier, -0.1);
   }
 }

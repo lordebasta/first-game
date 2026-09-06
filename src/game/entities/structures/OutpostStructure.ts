@@ -1,9 +1,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../../constants";
-import type { Player } from "../Player";
-import type { PlayerWeapon } from "../../systems/PlayerWeapon";
 
-export type StructureKind = "power-plant" | "turret" | "radar";
+export type StructureKind = "wall" | "power-plant" | "shield" | "drone-factory" | "turret" | "radar" | "ammo-depot";
 
 export interface StructureDefinition {
   kind: StructureKind;
@@ -12,15 +10,9 @@ export interface StructureDefinition {
   color: number;
 }
 
-export interface StructureContext {
-  player: Player;
-  weapon: PlayerWeapon;
-  changeScoreMultiplier: (amount: number) => void;
-}
-
 export interface StructureConstructor {
   readonly definition: StructureDefinition;
-  new (scene: Phaser.Scene, x: number, y: number, context: StructureContext): OutpostStructure;
+  new (scene: Phaser.Scene, x: number, y: number): OutpostStructure;
 }
 
 /** Base visual and lifecycle for a structure. Structures intentionally have no physics body. */
@@ -58,9 +50,15 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     this.destroy();
   }
 
+  repair(): void {
+    this.onRepair();
+  }
+
   protected onInstall(): void {}
 
   protected onUpdate(_time: number): void {}
 
   protected onUninstall(): void {}
+
+  protected onRepair(): void {}
 }

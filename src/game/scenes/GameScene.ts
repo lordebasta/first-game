@@ -10,6 +10,7 @@ import { StructureSlots } from "../systems/StructureSlots";
 import { STRUCTURE_CLASSES, type StructureConstructor } from "../entities/structures";
 import { StructureChoiceView } from "../ui/StructureChoiceView";
 import { DevToolsView } from "../ui/DevToolsView";
+import { RUN_DATA } from "../RunData";
 
 const PLAYER_Y = 580;
 const CORE_Y = 678;
@@ -23,7 +24,6 @@ export class GameScene extends Phaser.Scene {
   private core!: Phaser.GameObjects.Rectangle;
   private scoreText!: Phaser.GameObjects.Text;
   private score = 0;
-  private scoreMultiplier = 1;
   private gameEnded = false;
   private choosingStructure = false;
 
@@ -34,6 +34,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     // Defensive reset in case a future scene pauses the shared Arcade world.
     this.physics.resume();
+    this.data.reset();
     createGameTextures(this);
     this.drawPlayfield();
 
@@ -47,7 +48,14 @@ export class GameScene extends Phaser.Scene {
     this.enemySpawner = new EnemySpawner(this, (wave) => this.handleWaveCleared(wave));
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
-    this.structureSlots = new StructureSlots(this, this.player, weapon, (amount) => this.changeScoreMultiplier(amount));
+    this.data.set({
+      [RUN_DATA.player]: this.player,
+      [RUN_DATA.weapon]: weapon,
+      [RUN_DATA.enemies]: this.enemySpawner.group,
+      [RUN_DATA.coreLineY]: CORE_Y - 18,
+      [RUN_DATA.scoreMultiplier]: 1,
+    });
+    this.structureSlots = new StructureSlots(this);
 
     this.scoreText = this.add.text(28, 24, "PUNTI  000000", {
       color: COLORS.text,
@@ -84,7 +92,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleProjectileImpact(impact: ProjectileImpact): void {
-    this.score += 100 * this.scoreMultiplier;
+    const scoreMultiplier = this.data.get(RUN_DATA.scoreMultiplier) as number;
+    this.score += Math.round(100 * scoreMultiplier);
     this.scoreText.setText(`PUNTI  ${this.score.toString().padStart(6, "0")}`);
     this.showHitEffect(impact.position);
   }
@@ -97,6 +106,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openStructureChoice(): void {
+    this.structureSlots.repairAll();
     this.pauseGame(true);
     this.structureChoice = new StructureChoiceView(this, {
       choices: Phaser.Utils.Array.Shuffle([...STRUCTURE_CLASSES]).slice(0, 3),
@@ -109,10 +119,6 @@ export class GameScene extends Phaser.Scene {
   private placeStructure(structure: StructureConstructor, slot: number): void {
     this.structureSlots.place(slot, structure);
     this.closeStructureChoice();
-  }
-
-  private changeScoreMultiplier(amount: number): void {
-    this.scoreMultiplier += amount;
   }
 
   private createDevTools(): void {
@@ -129,8 +135,9 @@ export class GameScene extends Phaser.Scene {
   private getDebugLines(): string[] {
     const player = this.player.getDebugValues();
     const enemies = this.enemySpawner.getDebugValues();
+    const scoreMultiplier = this.data.get(RUN_DATA.scoreMultiplier) as number;
     return [
-      `RUN  punti ${this.score}  x${this.scoreMultiplier}`,
+      `RUN  punti ${this.score}  x${scoreMultiplier.toFixed(1)}`,
       `ONDATA  ${enemies.wave}  nemici ${enemies.activeEnemies}`,
       `PLAYER  x ${player.x}  vel ${player.velocityX}`,
       `MOVIMENTO  x${player.movementMultiplier.toFixed(1)}`,
