@@ -6,6 +6,10 @@ import { PlayerCommandSource } from "../input/PlayerCommands";
 import { CombatSystem, type ProjectileImpact } from "../systems/CombatSystem";
 import { EnemySpawner } from "../systems/EnemySpawner";
 import { PlayerWeapon } from "../systems/PlayerWeapon";
+import { StructureSlots } from "../systems/StructureSlots";
+import { STRUCTURE_CLASSES, type StructureConstructor } from "../entities/structures";
+import { StructureChoiceView } from "../ui/StructureChoiceView";
+import { DevToolsView } from "../ui/DevToolsView";
 
 const PLAYER_Y = 580;
 const CORE_Y = 678;
@@ -14,10 +18,14 @@ export class GameScene extends Phaser.Scene {
   private player!: Player;
   private enemySpawner!: EnemySpawner;
   private combat!: CombatSystem;
+  private structureSlots!: StructureSlots;
+  private structureChoice?: StructureChoiceView;
   private core!: Phaser.GameObjects.Rectangle;
   private scoreText!: Phaser.GameObjects.Text;
   private score = 0;
+  private scoreMultiplier = 1;
   private gameEnded = false;
+  private choosingStructure = false;
 
   constructor() {
     super("game");
@@ -36,9 +44,10 @@ export class GameScene extends Phaser.Scene {
     const commands = new PlayerCommandSource(this);
     const weapon = new PlayerWeapon(this);
     this.player = new Player(this, GAME_WIDTH / 2, PLAYER_Y, commands, weapon);
-    this.enemySpawner = new EnemySpawner(this);
+    this.enemySpawner = new EnemySpawner(this, (wave) => this.handleWaveCleared(wave));
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
+    this.structureSlots = new StructureSlots(this, this.player, weapon, (amount) => this.changeScoreMultiplier(amount));
 
     this.scoreText = this.add.text(28, 24, "PUNTI  000000", {
       color: COLORS.text,
@@ -55,15 +64,18 @@ export class GameScene extends Phaser.Scene {
       })
       .setOrigin(1, 0);
 
+    this.createDevTools();
+
     this.enemySpawner.start(this.time.now);
   }
 
   update(time: number): void {
-    if (this.gameEnded) {
+    if (this.gameEnded || this.choosingStructure) {
       return;
     }
 
     this.player.weapon.update();
+    this.structureSlots.update(time);
     this.enemySpawner.update(time);
 
     if (this.enemySpawner.hasEnemyReached(this.core.y - 18)) {
@@ -72,9 +84,74 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleProjectileImpact(impact: ProjectileImpact): void {
-    this.score += 100;
+    this.score += 100 * this.scoreMultiplier;
     this.scoreText.setText(`PUNTI  ${this.score.toString().padStart(6, "0")}`);
     this.showHitEffect(impact.position);
+  }
+
+  private handleWaveCleared(wave: number): void {
+    // Frequent early choices make the upgrade loop visible in a short run.
+    if (wave > 0 && wave % 2 === 0) {
+      this.openStructureChoice();
+    }
+  }
+
+  private openStructureChoice(): void {
+    this.pauseGame(true);
+    this.structureChoice = new StructureChoiceView(this, {
+      choices: Phaser.Utils.Array.Shuffle([...STRUCTURE_CLASSES]).slice(0, 3),
+      labelForSlot: (slot) => this.structureSlots.labelFor(slot),
+      onChoose: (structure, slot) => this.placeStructure(structure, slot),
+      onSkip: () => this.closeStructureChoice(),
+    });
+  }
+
+  private placeStructure(structure: StructureConstructor, slot: number): void {
+    this.structureSlots.place(slot, structure);
+    this.closeStructureChoice();
+  }
+
+  private changeScoreMultiplier(amount: number): void {
+    this.scoreMultiplier += amount;
+  }
+
+  private createDevTools(): void {
+    if (!import.meta.env.DEV) {
+      return;
+    }
+
+    new DevToolsView(this, {
+      actions: [{ label: "DEV: ELIMINA", onClick: () => this.enemySpawner.eliminateAll() }],
+      getDebugLines: () => this.getDebugLines(),
+    });
+  }
+
+  private getDebugLines(): string[] {
+    const player = this.player.getDebugValues();
+    const enemies = this.enemySpawner.getDebugValues();
+    return [
+      `RUN  punti ${this.score}  x${this.scoreMultiplier}`,
+      `ONDATA  ${enemies.wave}  nemici ${enemies.activeEnemies}`,
+      `PLAYER  x ${player.x}  vel ${player.velocityX}`,
+      `MOVIMENTO  x${player.movementMultiplier.toFixed(1)}`,
+    ];
+  }
+
+  private closeStructureChoice(): void {
+    this.structureChoice?.destroy();
+    this.structureChoice = undefined;
+    this.pauseGame(false);
+  }
+
+  private pauseGame(paused: boolean): void {
+    this.choosingStructure = paused;
+    this.player.setControllable(!paused);
+    this.enemySpawner.setSuspended(paused);
+    if (paused) {
+      this.physics.pause();
+    } else {
+      this.physics.resume();
+    }
   }
 
   private showHitEffect(position: Phaser.Math.Vector2): void {

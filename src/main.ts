@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH } from "./game/constants";
+import { GAME_HEIGHT, GAME_WIDTH, WINDOW_WIDTH } from "./game/constants";
 import { GameOverScene } from "./game/scenes/GameOverScene";
 import { GameScene } from "./game/scenes/GameScene";
 import { MenuScene } from "./game/scenes/MenuScene";
@@ -7,7 +7,7 @@ import { MenuScene } from "./game/scenes/MenuScene";
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
-  width: GAME_WIDTH,
+  width: import.meta.env.DEV ? WINDOW_WIDTH : GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: "#07111f",
   physics: {

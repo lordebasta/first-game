@@ -21,17 +21,25 @@ export class EnemySpawner {
   private direction = 1;
   private wave = 0;
   private nextWaveAt?: number;
+  private suspended = false;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(
+    scene: Phaser.Scene,
+    private readonly onWaveCleared: (completedWaves: number) => void,
+  ) {
     this.group = scene.physics.add.group({ classType: Enemy });
   }
 
   start(time: number): void {
     this.wave = 0;
+    this.suspended = false;
     this.deployFormation(time);
   }
 
   update(time: number): void {
+    if (this.suspended) {
+      return;
+    }
     const enemies = this.activeEnemies();
     if (enemies.length === 0) {
       this.scheduleOrDeployNextWave(time);
@@ -59,6 +67,28 @@ export class EnemySpawner {
     return this.group.getChildren().some((object) => (object as Enemy).hasReached(y));
   }
 
+  eliminateAll(): void {
+    for (const enemy of this.activeEnemies()) {
+      enemy.deactivate();
+    }
+  }
+
+  getDebugValues(): { wave: number; activeEnemies: number } {
+    return {
+      wave: this.wave + 1,
+      activeEnemies: this.activeEnemies().length,
+    };
+  }
+
+  setSuspended(value: boolean): void {
+    this.suspended = value;
+    if (value) {
+      for (const enemy of this.activeEnemies()) {
+        enemy.setVelocity(0, 0);
+      }
+    }
+  }
+
   private deployFormation(_time: number): void {
     this.direction = 1;
     this.nextWaveAt = undefined;
@@ -79,6 +109,7 @@ export class EnemySpawner {
 
     if (time >= this.nextWaveAt) {
       this.wave += 1;
+      this.onWaveCleared(this.wave);
       this.deployFormation(time);
     }
   }

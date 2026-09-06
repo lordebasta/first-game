@@ -6,6 +6,7 @@ const MOVE_SPEED = 390;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private controllable = true;
+  private movementMultiplier = 1;
 
   constructor(
     scene: Phaser.Scene,
@@ -47,8 +48,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  changeMovementMultiplier(amount: number): void {
+    this.movementMultiplier += amount;
+  }
+
+  getDebugValues(): { x: number; velocityX: number; movementMultiplier: number } {
+    return {
+      x: Math.round(this.x),
+      velocityX: Math.round(this.body?.velocity.x ?? 0),
+      movementMultiplier: this.movementMultiplier,
+    };
+  }
+
   private applyMovement(command: PlayerCommand): void {
-    this.setVelocityX(command.moveAxis * MOVE_SPEED);
+    this.setVelocityX(command.moveAxis * MOVE_SPEED * this.movementMultiplier);
 
     if (command.moveAxis < 0) {
       this.setFlipX(true);

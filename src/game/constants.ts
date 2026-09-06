@@ -1,5 +1,7 @@
 export const GAME_WIDTH = 720;
 export const GAME_HEIGHT = 720;
+export const DEV_PANEL_WIDTH = 240;
+export const WINDOW_WIDTH = GAME_WIDTH + DEV_PANEL_WIDTH;
 
 export const COLORS = {
   background: 0x07111f,

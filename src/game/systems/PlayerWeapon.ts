@@ -8,6 +8,7 @@ export class PlayerWeapon {
   readonly projectiles: Phaser.Physics.Arcade.Group;
 
   private nextShotAt = 0;
+  private cooldownMultiplier = 1;
 
   constructor(scene: Phaser.Scene) {
     this.projectiles = scene.physics.add.group({ classType: Projectile });
@@ -18,10 +19,18 @@ export class PlayerWeapon {
       return false;
     }
 
+    this.fireFrom(time, origin);
+    this.nextShotAt = time + SHOT_COOLDOWN_MS * this.cooldownMultiplier;
+    return true;
+  }
+
+  fireFrom(_time: number, origin: Phaser.Math.Vector2): void {
     const projectile = this.projectiles.get() as Projectile;
     projectile.launch(origin.x, origin.y);
-    this.nextShotAt = time + SHOT_COOLDOWN_MS;
-    return true;
+  }
+
+  changeCooldownMultiplier(amount: number): void {
+    this.cooldownMultiplier += amount;
   }
 
   update(): void {
