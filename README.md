@@ -1,6 +1,6 @@
 # Last Outpost
 
-Prima vertical slice di un arcade endless realizzato con TypeScript, Phaser e Vite.
+Vertical slice di un arcade a campagna di 30 ondate realizzato con TypeScript, Phaser e Vite.
 
 ## Avvio
 
@@ -23,3 +23,13 @@ Aprire l'indirizzo mostrato da Vite, normalmente `http://localhost:5173`.
 ```bash
 npm run build
 ```
+
+## Test della logica
+
+```bash
+npm test
+```
+
+I test di regressione coprono nemici, teletrasporto, carte e combattimento
+con un adattatore minimo di Phaser, senza dipendenze aggiuntive. Non sostituiscono
+il playtest in browser per rendering e collisioni Arcade.

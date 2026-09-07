@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Projectile } from "../entities/Projectile";
+import { Projectile, type ProjectileOptions } from "../entities/Projectile";
 
 const SHOT_COOLDOWN_MS = 190;
 
@@ -31,9 +31,9 @@ export class PlayerWeapon {
     return true;
   }
 
-  fireFrom(_time: number, origin: Phaser.Math.Vector2, horizontalVelocity = 0): void {
+  fireFrom(_time: number, origin: Phaser.Math.Vector2, horizontalVelocity = 0, options: ProjectileOptions = {}): void {
     const projectile = this.projectiles.get() as Projectile;
-    projectile.launch(origin.x, origin.y, horizontalVelocity);
+    projectile.launch(origin.x, origin.y, horizontalVelocity, options);
   }
 
   changeCooldownMultiplier(amount: number): void {

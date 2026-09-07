@@ -29,7 +29,10 @@ export class Drone extends Phaser.GameObjects.Container {
     if (time < this.nextShotAt) {
       return;
     }
-    this.weapon.fireFrom(time, new Phaser.Math.Vector2(this.x, this.y - 18));
+    this.weapon.fireFrom(time, new Phaser.Math.Vector2(this.x, this.y - 18), 0, {
+      tint: 0x9fe7ff,
+      scale: 0.78,
+    });
     this.nextShotAt = time + SHOT_INTERVAL_MS;
   }
 

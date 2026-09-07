@@ -1,20 +1,19 @@
 # Space Invaders: Last Outpost
 
-Nome di lavoro per un arcade endless ispirato alla struttura di Space Invaders. Prima di una pubblicazione pubblica dovra avere un titolo originale.
+Nome di lavoro per un arcade a campagna ispirato alla struttura di Space Invaders. Prima di una pubblicazione pubblica dovra avere un titolo originale.
 
 ## Obiettivo
 
-Difendere un ultimo avamposto da un'invasione aliena sempre piu intensa e ottenere il punteggio piu alto possibile in classifica.
+Difendere un ultimo avamposto da un'invasione aliena sempre piu intensa e resistere a tutte le trenta ondate della campagna.
 
-Non esiste una partita da completare: la run termina quando il nucleo dell'avamposto viene distrutto. Ogni scelta serve a restare vivi piu a lungo, aumentare il moltiplicatore o ottenere punti rischiando la base.
+La partita termina con la distruzione del nucleo oppure con la vittoria dopo l'ondata 30. Ogni scelta serve a conservare la base per l'ondata successiva.
 
 ## Principi
 
 - controlli leggibili in pochi secondi;
-- run da 3 minuti in poi, potenzialmente senza limite;
+- una campagna di trenta ondate, con una difficolta leggibile;
 - difficolta che cresce senza produrre muri improvvisi;
-- punteggio basato su abilita, rischio e gestione dell'avamposto;
-- nessuna metaprogressione necessaria per competere in classifica;
+- sopravvivenza basata su abilita e gestione dell'avamposto;
 - una singola schermata e grafica 2D minimale;
 - prima versione single player, con eventuale modalita couch co-op successiva.
 
@@ -27,20 +26,20 @@ Sono l'ultimo pilota rimasto a proteggere una colonia sotto assedio. Devo abbatt
 ```text
 Arriva una formazione di invasori
         ↓
-Muoviti, spara, fai punti e conserva la combo
+Muoviti, spara e proteggi la base
         ↓
 Gli invasori scendono verso l'avamposto
         ↓
 Elimina la formazione
         ↓
-Ogni tre ondate: pausa, riparazione e scelta struttura
+Fra le ondate: pausa, riparazione e scelta di un potenziamento
         ↓
 La formazione torna e scende piu velocemente
         ↓
-Il nucleo cade: calcolo del punteggio e leaderboard
+Il nucleo cade: sconfitta; l'ondata 30 cade: vittoria
 ```
 
-Ogni tre ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero o al posto di una struttura esistente. Non c'e un negozio o una fase di costruzione lenta.
+Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero o al posto di una struttura esistente. Non c'e un negozio o una fase di costruzione lenta.
 
 ## Campo di gioco
 
@@ -77,45 +76,17 @@ La scelta e sempre locale e rapida: riempire uno slot con un muro, aggiungere un
 
 ## Nemici
 
-Il gioco inizia con un solo invasore base. La difficolta cresce aumentando gradualmente soltanto la sua velocita di discesa: il comportamento resta chiaro e il giocatore impara a proteggere i quattro slot.
+Il gioco inizia con Scout fragili e rapidi. Dall'ondata 6 entra l'infantry,
+piu resistente. La difficolta cresce gradualmente: il comportamento resta
+chiaro e il giocatore impara a proteggere i quattro slot.
 
 - **Invasore base:** scende verso la base; piu a lungo dura la run, piu rapidamente scende. Quando raggiunge una struttura, la danneggia e viene distrutto.
 - **Comandante:** appare ogni alcune ondate e aumenta temporaneamente la velocita di discesa della formazione finche resta vivo.
 - **Bombardiere:** appare ogni alcune ondate e, a intervalli, lancia una bomba che scende lentamente in linea retta verso la base. Il giocatore deve colpirla prima che raggiunga le strutture.
 
-Quando una bomba viene colpita, esplode e danneggia gli invasori adiacenti. Spararle e quindi sia una difesa urgente sia un'occasione per ottenere punti e mantenere la combo.
+Quando una bomba viene colpita, esplode e danneggia gli invasori adiacenti. Spararle e quindi sia una difesa urgente sia un'opportunita tattica per liberare spazio davanti alla base.
 
 Per la prima versione non servono altri nemici o mini-boss. Comandante e bombardiere entrano soltanto quando il ritmo dell'invasore base e gia divertente.
-
-## Punteggio e leaderboard
-
-Il punteggio deve favorire gioco aggressivo ma non sconsiderato.
-
-```text
-punti base dei nemici
-× moltiplicatore combo
-+ bonus ondata
-+ bonus strutture sopravvissute
-+ bonus rischio
-```
-
-### Combo
-
-La combo aumenta eliminando invasori in successione. Decresce lentamente se il giocatore non colpisce nessuno e si azzera quando una struttura viene distrutta.
-
-Questo costringe a bilanciare due priorita: continuare a sparare per mantenere il moltiplicatore o concentrarsi sugli invasori che stanno per raggiungere l'avamposto.
-
-### Bonus rischio
-
-Durante le pause il giocatore puo scegliere anche un modificatore facoltativo. Ogni modificatore aumenta sia difficolta sia potenziale punteggio:
-
-- gli alieni scendono piu velocemente, ma valgono piu punti;
-- gli scudi ricevono meno carica, ma la combo cresce prima;
-- arrivano piu bombardieri, ma ogni struttura sopravvissuta vale di piu;
-- il giocatore ha meno tempo per colpire una bomba, ma ottiene un moltiplicatore globale;
-- un settore della base resta senza difese, ma genera materiali extra.
-
-I modificatori devono essere identici per tutti in una sfida giornaliera o settimanale, cosi la classifica rimane confrontabile.
 
 ## Progressione nella run
 
@@ -132,7 +103,7 @@ La potenza aumenta durante una run, ma non in modo permanente:
 
 La run deve restare riconoscibile come Space Invaders: il giocatore muove, spara, schiva e sceglie quando rischiare. I potenziamenti aumentano le possibilita, non cambiano il gioco in un bullet heaven automatico.
 
-## Difficolta endless
+## Difficolta della campagna
 
 La difficolta cresce in passaggi leggibili:
 
@@ -142,39 +113,39 @@ La difficolta cresce in passaggi leggibili:
 4. Compare il bombardiere e il giocatore deve scegliere se sparare agli invasori o alla bomba.
 5. Le formazioni mescolano invasori base, comandante e bombardiere.
 
-Velocita e numero di minacce devono avere un limite pratico. Dopo un certo punto la difficolta deriva dal proteggere i quattro slot e dal decidere le strutture, non da uno schermo illeggibile.
+Velocita e numero di minacce devono avere un limite pratico. Verso l'ondata 30 la difficolta deriva dal proteggere i quattro slot e dal decidere le strutture, non da uno schermo illeggibile.
 
 ## Prima versione giocabile
 
-La prima build deve dimostrare che sparare, proteggere il nucleo e inseguire il punteggio sono gia divertenti.
+La prima build deve dimostrare che sparare, proteggere il nucleo e superare ondate sempre piu tese sono gia divertenti.
 
 - movimento orizzontale e fuoco;
 - un tipo di invasore in formazione;
 - nucleo con una sola vita;
 - quattro slot struttura e muro come unica struttura iniziale;
-- combo e punteggio a schermo;
-- tre ondate che si ripetono e aumentano di intensita;
-- schermata game over con miglior punteggio locale.
+- indicatore dell'ondata corrente su trenta;
+- le prime cinque ondate definite in `docs/levels.md`;
+- schermata game over con l'ondata raggiunta e schermata vittoria dopo l'ondata 30.
 
-Solo dopo che questa versione funziona conviene aggiungere la pausa, le scelte fra strutture, comandante, bombardiere, modificatori rischio e leaderboard online.
+Solo dopo che questa versione funziona conviene aggiungere la pausa, le scelte fra strutture, comandante e bombardiere.
 
 ## Roadmap indicativa
 
 | Periodo | Risultato |
 |---|---|
-| Settimana 1 | Movimento, sparo, formazione aliena, collisioni e punteggio |
+| Settimana 1 | Movimento, sparo, formazione aliena, collisioni e indicatore ondata |
 | Settimana 2 | Nucleo con una vita, quattro slot, muri, danni e game over |
-| Settimana 3 | Combo, ondate endless e ritmo della velocita di discesa |
+| Settimana 3 | Prime cinque ondate e ritmo della velocita di discesa |
 | Settimana 4 | Pausa, riparazione e scelta fra tre strutture |
 | Settimane 5-6 | Comandante, bombardiere, esplosione delle bombe, effetti e suono |
-| Settimane 7-8 | Modificatori rischio, bilanciamento, salvataggio punteggio e playtest |
-| Dopo la versione locale | Leaderboard online, sfida giornaliera o couch co-op |
+| Settimane 7-8 | Completamento delle trenta ondate, bilanciamento e playtest |
+| Dopo la versione locale | Couch co-op |
 
 ## Rischi da evitare
 
 - trasformare le strutture in un city builder lento;
 - aggiungere troppi tipi di nemico prima di aver perfezionato una formazione base;
-- rendere la combo obbligatoria per divertirsi;
+- rendere obbligatori potenziamenti specifici per completare la campagna;
 - rendere casuali le collisioni o le traiettorie dei proiettili;
 - creare una difficolta basata solo su velocita e quantita;
-- aggiungere una leaderboard online prima che il punteggio locale sia interessante.
+- creare un picco di difficolta improvviso fra due ondate consecutive.

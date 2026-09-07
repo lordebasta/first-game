@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { AmmoDepot } from "./AmmoDepot";
+import { DroneFactory } from "./DroneFactory";
 import { PowerPlant } from "./PowerPlant";
 import { Radar } from "./Radar";
 import { type OutpostStructure, type StructureConstructor } from "./OutpostStructure";
@@ -24,5 +26,3 @@ export function createStructure(
 ): OutpostStructure {
   return new StructureClass(scene, x, y);
 }
-import { AmmoDepot } from "./AmmoDepot";
-import { DroneFactory } from "./DroneFactory";

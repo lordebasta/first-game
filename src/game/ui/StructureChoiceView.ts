@@ -1,19 +1,31 @@
 import Phaser from "phaser";
-import { GAME_WIDTH } from "../constants";
-import { type StructureConstructor } from "../entities/structures";
-import { createButton } from "../ui";
+import { COLORS, GAME_WIDTH } from "../constants";
+import { type OutpostCard } from "../systems/OutpostCardSystem";
+import { createButton, type ButtonStyle } from "../ui";
 
 interface StructureChoiceViewOptions {
-  choices: readonly StructureConstructor[];
-  labelForSlot: (slot: number) => string;
-  onChoose: (structure: StructureConstructor, slot: number) => void;
-  onSkip: () => void;
+  choices: readonly OutpostCard[];
+  onChoose: (apply: () => void) => void;
 }
 
-/** Presentation-only modal for choosing, replacing, or skipping a structure. */
+const STRUCTURE_CARD_STYLE: ButtonStyle = {
+  fill: 0x17382e,
+  stroke: COLORS.accent,
+  hover: 0x245844,
+  pressed: 0x367b5e,
+};
+const UPGRADE_CARD_STYLE: ButtonStyle = {
+  fill: 0x26334d,
+  stroke: COLORS.projectile,
+  hover: 0x3a4d70,
+  pressed: 0x576d96,
+};
+
+/** Presentation-only modal for structure and upgrade cards. */
 export class StructureChoiceView {
   private readonly modal: Phaser.GameObjects.Container;
-  private waitingForSlot = false;
+  private targetButtons: Phaser.GameObjects.Container[] = [];
+  private chosen = false;
 
   constructor(private readonly scene: Phaser.Scene, private readonly options: StructureChoiceViewOptions) {
     const overlay = scene.add.rectangle(GAME_WIDTH / 2, 360, GAME_WIDTH, 720, 0x020814, 0.9);
@@ -23,7 +35,7 @@ export class StructureChoiceView {
       })
       .setOrigin(0.5);
     const subtitle = scene.add
-      .text(GAME_WIDTH / 2, 198, "Scegli una struttura oppure continua", {
+      .text(GAME_WIDTH / 2, 198, "Scegli una carta per l'avamposto", {
         color: "#8fb2c9", fontFamily: "monospace", fontSize: "16px",
       })
       .setOrigin(0.5);
@@ -36,33 +48,34 @@ export class StructureChoiceView {
   }
 
   private showChoices(): void {
-    this.options.choices.forEach((structure, index) => {
-      const x = 150 + index * 210;
-      const button = createButton(this.scene, x, 280, structure.definition.name, () => this.showSlots(structure));
+    this.options.choices.forEach((card, index) => {
+      const x = GAME_WIDTH / 2 + (index - (this.options.choices.length - 1) / 2) * 210;
+      const style = card.kind === "structure" ? STRUCTURE_CARD_STYLE : UPGRADE_CARD_STYLE;
+      const button = createButton(this.scene, x, 280, card.name, () => this.showSlots(card), style);
       button.setScale(0.72);
       const detail = this.scene.add
-        .text(x, 330, structure.definition.description, {
+        .text(x, 330, card.description, {
           color: "#8fb2c9", fontFamily: "monospace", fontSize: "12px", align: "center", wordWrap: { width: 180 },
         })
         .setOrigin(0.5);
       this.modal.add([button, detail]);
     });
-    const skip = createButton(this.scene, GAME_WIDTH / 2, 400, "CONTINUA SENZA STRUTTURA", () => this.options.onSkip());
-    skip.setScale(0.72);
-    this.modal.add(skip);
   }
 
-  private showSlots(structure: StructureConstructor): void {
-    if (this.waitingForSlot) {
-      return;
-    }
-    this.waitingForSlot = true;
-    for (let slot = 0; slot < 3; slot += 1) {
-      const button = createButton(this.scene, 170 + slot * 190, 480, this.options.labelForSlot(slot), () => {
-        this.options.onChoose(structure, slot);
+  private showSlots(card: OutpostCard): void {
+    if (this.chosen) return;
+    this.targetButtons.forEach((button) => button.destroy());
+    this.targetButtons = [];
+    for (const [index, target] of card.targets.entries()) {
+      const x = GAME_WIDTH / 2 + (index - (card.targets.length - 1) / 2) * 190;
+      const button = createButton(this.scene, x, 480, target.label, () => {
+        if (this.chosen) return;
+        this.chosen = true;
+        this.options.onChoose(target.apply);
       });
       button.setScale(0.68);
       this.modal.add(button);
+      this.targetButtons.push(button);
     }
   }
 }

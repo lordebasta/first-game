@@ -1,14 +1,15 @@
 import Phaser from "phaser";
-import { BEST_SCORE_KEY, COLORS, GAME_WIDTH } from "../constants";
+import { COLORS, GAME_WIDTH } from "../constants";
 import { Player } from "../entities/Player";
 import { Bomb } from "../entities/Bomb";
 import { createGameTextures } from "../graphics/createGameTextures";
 import { PlayerCommandSource } from "../input/PlayerCommands";
 import { CombatSystem, type ProjectileImpact } from "../systems/CombatSystem";
 import { EnemySpawner } from "../systems/EnemySpawner";
+import { LAST_LEVEL } from "../systems/WaveDefinitions";
 import { PlayerWeapon } from "../systems/PlayerWeapon";
 import { StructureSlots } from "../systems/StructureSlots";
-import { STRUCTURE_CLASSES, type StructureConstructor } from "../entities/structures";
+import { OutpostCardSystem } from "../systems/OutpostCardSystem";
 import { StructureChoiceView } from "../ui/StructureChoiceView";
 import { DevToolsView } from "../ui/DevToolsView";
 import { RUN_DATA } from "../RunData";
@@ -21,10 +22,10 @@ export class GameScene extends Phaser.Scene {
   private enemySpawner!: EnemySpawner;
   private combat!: CombatSystem;
   private structureSlots!: StructureSlots;
+  private outpostCards!: OutpostCardSystem;
   private structureChoice?: StructureChoiceView;
   private core!: Phaser.GameObjects.Rectangle;
-  private scoreText!: Phaser.GameObjects.Text;
-  private score = 0;
+  private waveText!: Phaser.GameObjects.Text;
   private gameEnded = false;
   private choosingStructure = false;
 
@@ -33,6 +34,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.gameEnded = false;
+    this.choosingStructure = false;
+    this.structureChoice = undefined;
     // Defensive reset in case a future scene pauses the shared Arcade world.
     this.physics.resume();
     this.data.reset();
@@ -46,7 +50,11 @@ export class GameScene extends Phaser.Scene {
     const commands = new PlayerCommandSource(this);
     const weapon = new PlayerWeapon(this);
     this.player = new Player(this, GAME_WIDTH / 2, PLAYER_Y, commands, weapon);
-    this.enemySpawner = new EnemySpawner(this, (wave) => this.handleWaveCleared(wave));
+    this.enemySpawner = new EnemySpawner(
+      this,
+      (wave) => this.handleWaveCleared(wave),
+      () => this.endGame(true),
+    );
     const bombs = this.physics.add.group({ classType: Bomb });
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
@@ -56,11 +64,13 @@ export class GameScene extends Phaser.Scene {
       [RUN_DATA.enemies]: this.enemySpawner.group,
       [RUN_DATA.bombs]: bombs,
       [RUN_DATA.coreLineY]: CORE_Y - 18,
-      [RUN_DATA.scoreMultiplier]: 1,
+      [RUN_DATA.lastLevel]: LAST_LEVEL,
     });
     this.structureSlots = new StructureSlots(this);
+    this.outpostCards = new OutpostCardSystem(this.structureSlots);
+    this.data.set(RUN_DATA.structureSlots, this.structureSlots);
 
-    this.scoreText = this.add.text(28, 24, "PUNTI  000000", {
+    this.waveText = this.add.text(28, 24, `ONDATA  01 / ${this.lastLevel}`, {
       color: COLORS.text,
       fontFamily: "monospace",
       fontSize: "24px",
@@ -80,14 +90,14 @@ export class GameScene extends Phaser.Scene {
     this.enemySpawner.start(this.time.now);
   }
 
-  update(time: number): void {
+  update(time: number, delta: number): void {
     if (this.gameEnded || this.choosingStructure) {
       return;
     }
 
     this.player.weapon.update();
     this.structureSlots.update(time);
-    this.enemySpawner.update(time);
+    this.enemySpawner.update(time, delta);
 
     if (this.enemySpawner.hasEnemyReached(this.core.y - 18)) {
       this.endGame();
@@ -95,33 +105,26 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleProjectileImpact(impact: ProjectileImpact): void {
-    const scoreMultiplier = this.data.get(RUN_DATA.scoreMultiplier) as number;
-    this.score += Math.round(100 * scoreMultiplier);
-    this.scoreText.setText(`PUNTI  ${this.score.toString().padStart(6, "0")}`);
     this.showHitEffect(impact.position);
   }
 
   private handleWaveCleared(wave: number): void {
-    // Frequent early choices make the upgrade loop visible in a short run.
-    if (wave > 0 && wave % 2 === 0) {
-      this.openStructureChoice();
-    }
+    this.waveText.setText(`ONDATA  ${(wave + 1).toString().padStart(2, "0")} / ${this.lastLevel}`);
+    this.openStructureChoice();
   }
 
   private openStructureChoice(): void {
     this.structureSlots.repairAll();
+    const choices = this.outpostCards.draw();
+    if (choices.length === 0) return;
     this.pauseGame(true);
     this.structureChoice = new StructureChoiceView(this, {
-      choices: Phaser.Utils.Array.Shuffle([...STRUCTURE_CLASSES]).slice(0, 3),
-      labelForSlot: (slot) => this.structureSlots.labelFor(slot),
-      onChoose: (structure, slot) => this.placeStructure(structure, slot),
-      onSkip: () => this.closeStructureChoice(),
+      choices,
+      onChoose: (apply) => {
+        apply();
+        this.closeStructureChoice();
+      },
     });
-  }
-
-  private placeStructure(structure: StructureConstructor, slot: number): void {
-    this.structureSlots.place(slot, structure);
-    this.closeStructureChoice();
   }
 
   private createDevTools(): void {
@@ -138,10 +141,9 @@ export class GameScene extends Phaser.Scene {
   private getDebugLines(): string[] {
     const player = this.player.getDebugValues();
     const enemies = this.enemySpawner.getDebugValues();
-    const scoreMultiplier = this.data.get(RUN_DATA.scoreMultiplier) as number;
     return [
-      `RUN  punti ${this.score}  x${scoreMultiplier.toFixed(1)}`,
-      `ONDATA  ${enemies.wave}  nemici ${enemies.activeEnemies}`,
+      `CAMPAGNA  ondata ${enemies.wave} / ${this.lastLevel}`,
+      `NEMICI  ${enemies.activeEnemies}`,
       `PLAYER  x ${player.x}  vel ${player.velocityX}`,
       `MOVIMENTO  x${player.movementMultiplier.toFixed(1)}`,
     ];
@@ -151,6 +153,10 @@ export class GameScene extends Phaser.Scene {
     this.structureChoice?.destroy();
     this.structureChoice = undefined;
     this.pauseGame(false);
+  }
+
+  private get lastLevel(): number {
+    return this.data.get(RUN_DATA.lastLevel) as number;
   }
 
   private pauseGame(paused: boolean): void {
@@ -175,34 +181,23 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private endGame(): void {
+  private endGame(victory = false): void {
     this.gameEnded = true;
     this.player.setControllable(false);
-    this.cameras.main.shake(220, 0.012);
-    this.core.setFillStyle(COLORS.enemy);
-
-    const bestScore = Math.max(this.score, this.readBestScore());
-    this.writeBestScore(bestScore);
+    if (victory) {
+      this.core.setFillStyle(COLORS.accent);
+    } else {
+      this.cameras.main.shake(220, 0.012);
+      this.core.setFillStyle(COLORS.enemy);
+    }
 
     this.time.delayedCall(450, () => {
-      this.scene.start("game-over", { score: this.score, bestScore });
+      this.scene.start("game-over", {
+        wave: this.enemySpawner.getDebugValues().wave,
+        lastLevel: this.lastLevel,
+        victory,
+      });
     });
-  }
-
-  private readBestScore(): number {
-    try {
-      return Number.parseInt(localStorage.getItem(BEST_SCORE_KEY) ?? "0", 10) || 0;
-    } catch {
-      return 0;
-    }
-  }
-
-  private writeBestScore(score: number): void {
-    try {
-      localStorage.setItem(BEST_SCORE_KEY, String(score));
-    } catch {
-      // The game still works when browser storage is disabled.
-    }
   }
 
   private drawPlayfield(): void {

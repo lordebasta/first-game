@@ -3,6 +3,7 @@ import { GAME_WIDTH } from "../constants";
 import { createStructure, type StructureConstructor } from "../entities/structures";
 import { type OutpostStructure } from "../entities/structures/OutpostStructure";
 
+
 const SLOT_Y = 625;
 const SLOT_X = [170, GAME_WIDTH / 2, 550] as const;
 const SLOT_WIDTH = 178;
@@ -32,6 +33,10 @@ export class StructureSlots {
 
   repairAll(): void {
     this.structures.forEach((structure) => structure?.repair());
+  }
+
+  getStructures(): readonly (OutpostStructure | undefined)[] {
+    return [...this.structures];
   }
 
   private drawSlots(): void {

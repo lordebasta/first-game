@@ -3,8 +3,9 @@ import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../constants";
 import { createButton } from "../ui";
 
 interface GameOverData {
-  score: number;
-  bestScore: number;
+  wave: number;
+  lastLevel: number;
+  victory: boolean;
 }
 
 export class GameOverScene extends Phaser.Scene {
@@ -13,9 +14,10 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data: GameOverData): void {
+    const title = data.victory ? "AVAMPOSTO SALVO" : "NUCLEO DISTRUTTO";
     this.add
-      .text(GAME_WIDTH / 2, 145, "NUCLEO DISTRUTTO", {
-        color: "#ff5470",
+      .text(GAME_WIDTH / 2, 145, title, {
+        color: data.victory ? "#56f29a" : "#ff5470",
         fontFamily: "monospace",
         fontSize: "48px",
         fontStyle: "bold",
@@ -26,9 +28,9 @@ export class GameOverScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         250,
-        `PUNTEGGIO  ${data.score.toString().padStart(6, "0")}\nRECORD     ${data.bestScore
-          .toString()
-          .padStart(6, "0")}`,
+        data.victory
+          ? `HAI RESISTITO A TUTTE\nLE ${data.lastLevel} ONDATE`
+          : `ONDATA RAGGIUNTA\n${data.wave.toString().padStart(2, "0")} / ${data.lastLevel}`,
         {
           align: "left",
           color: COLORS.text,

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../constants";
+import { LAST_LEVEL } from "../systems/WaveDefinitions";
 import { createButton } from "../ui";
 
 export class MenuScene extends Phaser.Scene {
@@ -18,7 +19,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 245, "Difendi il nucleo. Resisti più a lungo.", {
+      .text(GAME_WIDTH / 2, 245, `Difendi il nucleo. Resisti a ${LAST_LEVEL} ondate.`, {
         color: COLORS.mutedText,
         fontFamily: "monospace",
         fontSize: "20px",

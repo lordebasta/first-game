@@ -5,8 +5,16 @@ Outpost*. I valori numerici finali vanno decisi con i playtest.
 
 ## Carte struttura e carte upgrade
 
-Durante ogni pausa fra le ondate, il giocatore riceve tre carte casuali. La
-mano puo contenere sia carte struttura sia carte upgrade.
+Durante ogni pausa fra le ondate, il giocatore riceve fino a tre carte casuali.
+Con N slot liberi, N carte sono strutture e le altre 3-N sono upgrade
+applicabili. Se non esistono abbastanza upgrade, la mano contiene meno carte:
+i posti mancanti non vengono riempiti con altre strutture.
+
+Nella vertical slice attuale sono disponibili le sei carte Torretta elencate
+sotto. Con tutti e tre gli slot occupati, le carte struttura non compaiono.
+Non esiste il pulsante «Continua senza struttura»: si sceglie una carta e il
+suo bersaglio. Se non esiste alcuna carta applicabile, la pausa termina
+automaticamente. Gli altri upgrade e le sinergie restano proposte future.
 
 - Una carta struttura permette di piazzare la struttura in uno slot vuoto o di
   sostituire una struttura di tipo diverso, secondo le normali regole di

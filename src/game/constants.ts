@@ -18,5 +18,3 @@ export const COLORS = {
   coreGlow: 0x7a4e08,
   accent: 0x56f29a,
 } as const;
-
-export const BEST_SCORE_KEY = "last-outpost-best-score";

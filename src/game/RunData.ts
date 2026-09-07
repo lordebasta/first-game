@@ -4,5 +4,6 @@ export const RUN_DATA = {
   enemies: "enemies",
   bombs: "bombs",
   coreLineY: "coreLineY",
-  scoreMultiplier: "scoreMultiplier",
+  lastLevel: "lastLevel",
+  structureSlots: "structureSlots",
 } as const;
