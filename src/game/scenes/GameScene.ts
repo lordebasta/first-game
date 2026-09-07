@@ -201,9 +201,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawPlayfield(): void {
-    this.add.rectangle(GAME_WIDTH / 2, PLAYER_Y + 48, GAME_WIDTH - 64, 2, COLORS.playerGlow);
-    this.add.rectangle(GAME_WIDTH / 2, CORE_Y - 32, GAME_WIDTH - 64, 2, COLORS.coreGlow);
-
     for (let x = 72; x < GAME_WIDTH; x += 128) {
       this.add.circle(x, 115 + (x % 3) * 42, 1.5, 0x8fb2c9, 0.55);
     }
