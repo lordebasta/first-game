@@ -70,7 +70,7 @@ const { WALL_UPGRADES } = load('src/game/entities/structures/Wall.ts');
 const { POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
 const { SHIELD_UPGRADES } = load('src/game/entities/structures/Shield.ts');
 const { DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
-const { RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
+const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
 const { AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
 
 test('every implemented structure exposes exactly three upgrades', () => {
@@ -98,6 +98,25 @@ test('radar vulnerability adds damage instead of multiplying it', () => {
   enemy.setMarked(true, 2);
   enemy.receiveHit({ damage: 1 });
   assert.equal(enemy.getHealth(), 1);
+});
+
+test('radar prefers the lowest enemy when health is tied', () => {
+  const top = new ScoutVeteran({}), bottom = new ScoutVeteran({});
+  top.spawn(100, 100);
+  bottom.spawn(100, 300);
+  const radar = Object.create(Radar.prototype);
+  radar.definition = Radar.definition;
+  radar.upgradeDefinitions = RADAR_UPGRADES;
+  radar.upgrades = new Set();
+  radar.markedEnemies = [];
+  radar.scene = { data: { get: () => ({ getChildren: () => [top, bottom] }) } };
+
+  radar.update(0);
+  top.receiveHit({ damage: 1 });
+  bottom.receiveHit({ damage: 1 });
+
+  assert.equal(top.getHealth(), 3);
+  assert.equal(bottom.getHealth(), 2);
 });
 
 test('uniform spawning preserves type defaults, health colors and reuse resets', () => {

@@ -33,7 +33,8 @@ export class Radar extends OutpostStructure {
       ? this.markedEnemies.filter((enemy) => enemy.active).slice(0, count)
       : [];
     const targets = [...retained];
-    const strongest = [...enemies].sort((a, b) => b.getHealth() - a.getHealth());
+    const strongest = [...enemies].sort((a, b) =>
+      b.getHealth() - a.getHealth() || b.y - a.y);
     for (const enemy of strongest) {
       if (targets.length >= count) break;
       if (!targets.includes(enemy)) targets.push(enemy);
