@@ -221,16 +221,19 @@ test('structure type upgrades are inherited by structures placed later', () => {
   slots.place(0, FakeTurret);
   slots.applyUpgrade('turret', 'damage');
   slots.place(1, FakeTurret);
+  slots.place(1, FakeTurret);
 
   assert.deepEqual(created.map((structure) => structure.applied), [['damage'], ['damage']]);
 });
 
-test('dev structure draw contains only structures and works with full slots', () => {
-  const hand = structureCards([turret(), turret(), turret()]);
+test('structure cards only target empty slots', () => {
+  const hand = structureCards([turret(), undefined, structureWithoutUpgrades('wall')]);
   assert.equal(hand.length, 3);
   assert(hand.every((card) => card.kind === 'structure'));
-  assert(hand.every((card) => card.targets.length > 0));
+  assert(hand.every((card) => card.targets.length === 1));
+  assert(hand.every((card) => card.targets[0].label === 'SLOT 1'));
   assert.equal(hand.some((card) => card.name === 'SCUDO'), false);
+  assert.equal(structureCards([turret(), turret(), turret()]).length, 0);
 });
 
 test('combat applies direct and area damage once, supports piercing and resets pooled shots', () => {

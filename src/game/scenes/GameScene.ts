@@ -13,6 +13,8 @@ import { OutpostCardSystem } from "../systems/OutpostCardSystem";
 import { StructureChoiceView } from "../ui/StructureChoiceView";
 import { DevToolsView } from "../ui/DevToolsView";
 import { RUN_DATA } from "../RunData";
+import { BackgroundMusic } from "../audio/BackgroundMusic";
+import { PauseView } from "../ui/PauseView";
 
 const PLAYER_Y = 580;
 const CORE_Y = 678;
@@ -24,10 +26,17 @@ export class GameScene extends Phaser.Scene {
   private structureSlots!: StructureSlots;
   private outpostCards!: OutpostCardSystem;
   private structureChoice?: StructureChoiceView;
+  private pauseView?: PauseView;
+  private backgroundMusic?: BackgroundMusic;
   private core!: Phaser.GameObjects.Rectangle;
   private waveText!: Phaser.GameObjects.Text;
   private gameEnded = false;
-  private choosingStructure = false;
+  private gameplayPaused = false;
+  private readonly handleKeyDown = (event: KeyboardEvent): void => {
+    if ((event.key !== "Escape" && event.code !== "Escape") || event.repeat) return;
+    event.preventDefault();
+    this.togglePauseMenu();
+  };
 
   constructor() {
     super("game");
@@ -35,8 +44,9 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.gameEnded = false;
-    this.choosingStructure = false;
+    this.gameplayPaused = false;
     this.structureChoice = undefined;
+    this.pauseView = undefined;
     // Defensive reset in case a future scene pauses the shared Arcade world.
     this.physics.resume();
     this.data.reset();
@@ -78,7 +88,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.add
-      .text(GAME_WIDTH - 28, 28, "A/D · FRECCE     SPAZIO · CLICK", {
+      .text(GAME_WIDTH - 28, 28, "A/D · FRECCE   SPAZIO · CLICK   ESC · PAUSA", {
         color: COLORS.mutedText,
         fontFamily: "monospace",
         fontSize: "15px",
@@ -86,12 +96,22 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(1, 0);
 
     this.createDevTools();
+    this.backgroundMusic = new BackgroundMusic(this);
+    this.backgroundMusic.start();
+    window.addEventListener("keydown", this.handleKeyDown, true);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      window.removeEventListener("keydown", this.handleKeyDown, true);
+      this.backgroundMusic?.destroy();
+      this.backgroundMusic = undefined;
+      this.pauseView?.destroy();
+      this.pauseView = undefined;
+    });
 
     this.enemySpawner.start(this.time.now);
   }
 
   update(time: number, delta: number): void {
-    if (this.gameEnded || this.choosingStructure) {
+    if (this.gameEnded || this.gameplayPaused) {
       return;
     }
 
@@ -119,7 +139,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private openDevStructureChoice(): void {
-    if (this.gameEnded || this.choosingStructure) return;
+    if (this.gameEnded || this.gameplayPaused) return;
     this.showStructureChoice(this.outpostCards.drawStructures());
   }
 
@@ -166,12 +186,31 @@ export class GameScene extends Phaser.Scene {
     this.pauseGame(false);
   }
 
+  private togglePauseMenu(): void {
+    if (this.gameEnded || this.structureChoice) return;
+    if (this.pauseView) {
+      this.closePauseMenu();
+      return;
+    }
+    this.pauseGame(true);
+    this.pauseView = new PauseView(this, {
+      onResume: () => this.closePauseMenu(),
+      onMenu: () => this.scene.start("menu"),
+    });
+  }
+
+  private closePauseMenu(): void {
+    this.pauseView?.destroy();
+    this.pauseView = undefined;
+    this.pauseGame(false);
+  }
+
   private get lastLevel(): number {
     return this.data.get(RUN_DATA.lastLevel) as number;
   }
 
   private pauseGame(paused: boolean): void {
-    this.choosingStructure = paused;
+    this.gameplayPaused = paused;
     this.player.setControllable(!paused);
     this.enemySpawner.setSuspended(paused);
     if (paused) {

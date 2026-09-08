@@ -39,7 +39,7 @@ La formazione torna e scende piu velocemente
 Il nucleo cade: sconfitta; l'ondata 30 cade: vittoria
 ```
 
-Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero o al posto di una struttura esistente. Non c'e un negozio o una fase di costruzione lenta.
+Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero. Una struttura gia presente non puo essere sostituita. Non c'e un negozio o una fase di costruzione lenta.
 
 ## Campo di gioco
 
@@ -72,7 +72,7 @@ L'avamposto ha una fila di **quattro slot**. Ogni struttura ha due punti integri
 - **Radar:** marca il nemico piu resistente e aggiunge +1 al danno che riceve.
 - **Deposito munizioni:** ogni quinto attacco del giocatore diventa ad area.
 
-La scelta e sempre locale e rapida: riempire uno slot con un muro, aggiungere una struttura utile o sacrificare una struttura esistente per sostituirla.
+La scelta e sempre locale e rapida: riempire uno slot con un muro o aggiungere una struttura utile in uno slot ancora libero.
 
 ## Nemici
 

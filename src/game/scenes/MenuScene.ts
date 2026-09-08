@@ -1,14 +1,20 @@
 import Phaser from "phaser";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../constants";
 import { LAST_LEVEL } from "../systems/WaveDefinitions";
-import { createButton } from "../ui";
+import { createButton, createSlider } from "../ui";
+import { initializeAudioVolume, preloadBackgroundMusic } from "../audio/BackgroundMusic";
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
     super("menu");
   }
 
+  preload(): void {
+    preloadBackgroundMusic(this);
+  }
+
   create(): void {
+    initializeAudioVolume(this);
     this.add
       .text(GAME_WIDTH / 2, 180, "LAST OUTPOST", {
         color: COLORS.text,
@@ -27,11 +33,19 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     createButton(this, GAME_WIDTH / 2, 360, "GIOCA", () => this.startGame());
+    createSlider(
+      this,
+      GAME_WIDTH / 2,
+      465,
+      "VOLUME",
+      this.sound.volume,
+      (value) => this.sound.setVolume(value),
+    );
 
     this.add
       .text(
         GAME_WIDTH / 2,
-        GAME_HEIGHT - 100,
+        GAME_HEIGHT - 70,
         "Movimento: A/D o frecce\nFuoco: Spazio o click sinistro",
         {
           align: "center",

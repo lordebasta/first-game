@@ -20,9 +20,8 @@ le carte struttura, lo slot in cui piazzarla. Se non esiste alcuna carta
 applicabile, la pausa termina automaticamente. Gli altri upgrade e le sinergie
 restano proposte future.
 
-- Una carta struttura permette di piazzare la struttura in uno slot vuoto o di
-  sostituire una struttura di tipo diverso, secondo le normali regole di
-  piazzamento.
+- Una carta struttura permette di piazzare la struttura esclusivamente in uno
+  slot vuoto. Le strutture gia presenti non possono essere sostituite.
 - Una carta upgrade compare fra le stesse tre carte solo se il giocatore
   possiede almeno una struttura del tipo indicato.
 - Scegliendo una carta upgrade, l'effetto viene applicato a tutte le strutture

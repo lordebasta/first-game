@@ -22,7 +22,7 @@ export class StructureSlots {
   }
 
   place(slot: number, StructureClass: StructureConstructor): void {
-    this.structures[slot]?.uninstall();
+    if (this.structures[slot]) return;
     const structure = createStructure(StructureClass, this.scene, SLOT_X[slot], SLOT_Y);
     this.structures[slot] = structure;
     structure.install();
@@ -32,7 +32,7 @@ export class StructureSlots {
   }
 
   labelFor(slot: number): string {
-    return this.structures[slot] ? `SOSTITUISCI ${slot + 1}` : `SLOT ${slot + 1}`;
+    return this.structures[slot] ? `OCCUPATO ${slot + 1}` : `SLOT ${slot + 1}`;
   }
 
   repairAll(): void {

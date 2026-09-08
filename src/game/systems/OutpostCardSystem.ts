@@ -55,7 +55,7 @@ export class OutpostCardSystem {
     return STRUCTURE_CLASSES.flatMap((StructureClass) => {
       if (StructureClass.definition.availableInCards === false) return [];
       const targets = structures.flatMap((structure, slot) =>
-        structure?.definition.kind === StructureClass.definition.kind ? [] : [{
+        structure ? [] : [{
           label: this.slots.labelFor(slot),
           apply: () => this.slots.place(slot, StructureClass),
         }]);

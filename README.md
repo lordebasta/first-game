@@ -15,6 +15,7 @@ Aprire l'indirizzo mostrato da Vite, normalmente `http://localhost:5173`.
 
 - `A` / `D` oppure frecce sinistra/destra: movimento;
 - `Spazio` oppure click sinistro: fuoco;
+- `Esc`: pausa durante il gioco;
 - `Invio`: inizia o riprova;
 - `Esc`: torna al menu dalla schermata di sconfitta.
 
@@ -41,3 +42,10 @@ tempo medio/picco trascorso nell'aggiornamento della scena. `CPU SCENA` e una
 misura del lavoro sincrono fra `PRE_UPDATE` e `POST_UPDATE`: non include il
 rendering GPU e non isola il carico causato da altre schede o processi del
 browser.
+
+La musica di gioco riproduce in sequenza le tracce in `src/assets/audio/`, con
+un crossfade di cinque secondi. Il volume si regola dal menu principale o
+dalla schermata di pausa.
+
+Per criteri, metriche e procedura di profiling consulta
+[docs/performance.md](docs/performance.md).
