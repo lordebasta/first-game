@@ -62,6 +62,7 @@ const { Scout } = load('src/game/entities/Scout.ts');
 const { ScoutVeteran } = load('src/game/entities/ScoutVeteran.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
+const { Drone } = load('src/game/entities/Drone.ts');
 const { CombatSystem } = load('src/game/systems/CombatSystem.ts');
 const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
@@ -148,6 +149,24 @@ test('Scout and veteran keep their own descent speed and inherited oscillation',
   }
 });
 
+test('drones randomize among the three best targets for the selected priority', () => {
+  const drone = Object.create(Drone.prototype);
+  const enemies = [
+    { y: 100, getHealth: () => 4 },
+    { y: 200, getHealth: () => 1 },
+    { y: 300, getHealth: () => 3 },
+    { y: 400, getHealth: () => 2 },
+  ];
+  const getRandom = phaser.Utils.Array.GetRandom;
+  phaser.Utils.Array.GetRandom = (candidates) => candidates[1];
+  try {
+    assert.equal(drone.chooseTarget(enemies, 'lowest'), enemies[2]);
+    assert.equal(drone.chooseTarget(enemies, 'strongest'), enemies[2]);
+  } finally {
+    phaser.Utils.Array.GetRandom = getRandom;
+  }
+});
+
 test('veteran closes, teleports and reopens while continuing its descent', () => {
   const enemy = new ScoutVeteran({});
   enemy.spawn(360, 100);
@@ -211,8 +230,8 @@ test('upgrade cards apply once to every structure of their type', () => {
   const first = turret(), second = turret();
   const { system, slots } = cardSystem([first, second, structureWithoutUpgrades('wall')]);
   const hand = system.draw();
-  assert.equal(hand[0].targets.length, 1);
-  hand[0].targets[0].apply();
+  assert.equal(hand[0].kind, 'upgrade');
+  hand[0].apply();
   assert(first.hasUpgrade(TURRET_UPGRADES[0].id));
   assert(second.hasUpgrade(TURRET_UPGRADES[0].id));
   assert.equal(system.draw().some((card) => card.name === TURRET_UPGRADES[0].name), false);

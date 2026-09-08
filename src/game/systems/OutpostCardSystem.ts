@@ -2,12 +2,22 @@ import Phaser from "phaser";
 import { STRUCTURE_CLASSES } from "../entities/structures";
 import type { StructureSlots } from "./StructureSlots";
 
-export interface OutpostCard {
-  kind: "structure" | "upgrade";
+interface OutpostCardBase {
   name: string;
   description: string;
+}
+
+export interface StructureCard extends OutpostCardBase {
+  kind: "structure";
   targets: { label: string; apply: () => void }[];
 }
+
+interface UpgradeCard extends OutpostCardBase {
+  kind: "upgrade";
+  apply: () => void;
+}
+
+export type OutpostCard = StructureCard | UpgradeCard;
 
 /** Builds eligible cards and applies the free-slot quota when drawing a hand. */
 export class OutpostCardSystem {
@@ -32,10 +42,7 @@ export class OutpostCardSystem {
             kind: "upgrade",
             name: upgrade.name,
             description: `${structureName}: ${upgrade.description}`,
-            targets: [{
-              label: `TUTTE: ${sample.definition.name}`,
-              apply: () => this.slots.applyUpgrade(sample.definition.kind, upgrade.id),
-            }],
+            apply: () => this.slots.applyUpgrade(sample.definition.kind, upgrade.id),
           });
         }
       }
@@ -50,7 +57,7 @@ export class OutpostCardSystem {
     return Phaser.Utils.Array.Shuffle(this.buildStructureCards()).slice(0, 3);
   }
 
-  private buildStructureCards(): OutpostCard[] {
+  private buildStructureCards(): StructureCard[] {
     const structures = this.slots.getStructures();
     return STRUCTURE_CLASSES.flatMap((StructureClass) => {
       if (StructureClass.definition.availableInCards === false) return [];

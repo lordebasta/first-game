@@ -6,6 +6,7 @@ import { PlayerWeapon } from "../systems/PlayerWeapon";
 const DRONE_Y = 530;
 const MOVE_SPEED = 260;
 const SHOT_INTERVAL_MS = 1_100;
+const TARGET_CANDIDATE_COUNT = 3;
 
 export interface DroneUpdateOptions {
   laser: boolean;
@@ -16,6 +17,8 @@ export interface DroneUpdateOptions {
 /** Autonomous support unit created by a Drone Factory. It has no physics body. */
 export class Drone extends Phaser.GameObjects.Container {
   private nextShotAt = 0;
+  private target?: Enemy;
+  private targetPriority?: DroneUpdateOptions["priority"];
 
   constructor(scene: Phaser.Scene, x: number, private readonly weapon: PlayerWeapon) {
     const body = scene.add.circle(0, 0, 13, COLORS.accent).setStrokeStyle(2, COLORS.player);
@@ -25,7 +28,11 @@ export class Drone extends Phaser.GameObjects.Container {
   }
 
   update(time: number, enemies: readonly Enemy[], options: DroneUpdateOptions): void {
-    const target = options.priority === "strongest" ? this.strongestEnemy(enemies) : this.lowestEnemy(enemies);
+    if (!this.target?.active || !enemies.includes(this.target) || this.targetPriority !== options.priority) {
+      this.target = this.chooseTarget(enemies, options.priority);
+      this.targetPriority = options.priority;
+    }
+    const target = this.target;
     if (!target) {
       return;
     }
@@ -48,14 +55,15 @@ export class Drone extends Phaser.GameObjects.Container {
       });
     }
     this.nextShotAt = time + SHOT_INTERVAL_MS * options.fireRateMultiplier;
+    this.target = undefined;
   }
 
-  private lowestEnemy(enemies: readonly Enemy[]): Enemy | undefined {
-    return enemies.reduce<Enemy | undefined>((lowest, enemy) => (!lowest || enemy.y > lowest.y ? enemy : lowest), undefined);
-  }
-
-  private strongestEnemy(enemies: readonly Enemy[]): Enemy | undefined {
-    return enemies.reduce<Enemy | undefined>((strongest, enemy) =>
-      !strongest || enemy.getHealth() > strongest.getHealth() ? enemy : strongest, undefined);
+  private chooseTarget(enemies: readonly Enemy[], priority: DroneUpdateOptions["priority"]): Enemy | undefined {
+    const candidates = [...enemies]
+      .sort(priority === "strongest"
+        ? (first, second) => second.getHealth() - first.getHealth() || second.y - first.y
+        : (first, second) => second.y - first.y)
+      .slice(0, TARGET_CANDIDATE_COUNT);
+    return candidates.length > 0 ? Phaser.Utils.Array.GetRandom(candidates) : undefined;
   }
 }

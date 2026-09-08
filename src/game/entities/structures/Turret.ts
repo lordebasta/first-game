@@ -13,8 +13,6 @@ export const TURRET_UPGRADES = [
   { id: "piercing", name: "COLPI PERFORANTI", description: "Attraversa 1 invasore aggiuntivo" },
   // { id: "stable", name: "STABILIZZATORE", description: "+30% velocita dei proiettili" }, // DOPO
 ] as const satisfies readonly StructureUpgrade[];
-export type TurretUpgradeId = typeof TURRET_UPGRADES[number]["id"];
-
 export class Turret extends OutpostStructure {
   static readonly definition = {
     kind: "turret",

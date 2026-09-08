@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { COLORS, GAME_WIDTH } from "../constants";
-import { type OutpostCard } from "../systems/OutpostCardSystem";
+import { type OutpostCard, type StructureCard } from "../systems/OutpostCardSystem";
 import { createButton, type ButtonStyle } from "../ui";
 
 interface StructureChoiceViewOptions {
@@ -51,18 +51,36 @@ export class StructureChoiceView {
     this.options.choices.forEach((card, index) => {
       const x = GAME_WIDTH / 2 + (index - (this.options.choices.length - 1) / 2) * 210;
       const style = card.kind === "structure" ? STRUCTURE_CARD_STYLE : UPGRADE_CARD_STYLE;
-      const button = createButton(this.scene, x, 280, card.name, () => this.showSlots(card), style);
+      const category = this.scene.add
+        .text(x, 242, card.kind === "structure" ? "STRUTTURA" : "POTENZIAMENTO", {
+          color: card.kind === "structure" ? "#56f29a" : "#fff29a",
+          fontFamily: "monospace",
+          fontSize: "11px",
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5);
+      const button = createButton(this.scene, x, 280, card.name, () => this.chooseCard(card), style);
       button.setScale(0.72);
       const detail = this.scene.add
         .text(x, 330, card.description, {
           color: "#8fb2c9", fontFamily: "monospace", fontSize: "12px", align: "center", wordWrap: { width: 180 },
         })
         .setOrigin(0.5);
-      this.modal.add([button, detail]);
+      this.modal.add([category, button, detail]);
     });
   }
 
-  private showSlots(card: OutpostCard): void {
+  private chooseCard(card: OutpostCard): void {
+    if (this.chosen) return;
+    if (card.kind === "upgrade") {
+      this.chosen = true;
+      this.options.onChoose(card.apply);
+      return;
+    }
+    this.showSlots(card);
+  }
+
+  private showSlots(card: StructureCard): void {
     if (this.chosen) return;
     this.targetButtons.forEach((button) => button.destroy());
     this.targetButtons = [];
