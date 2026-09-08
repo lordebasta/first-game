@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Hittable } from "../combat/Hittable";
 import type { Hit } from "../combat/Hit";
 
-export type EnemyHealth = 1 | 2 | 3 | 4;
+export type EnemyHealth = number;
 export interface EnemySpawnOptions {
   health?: EnemyHealth;
 }

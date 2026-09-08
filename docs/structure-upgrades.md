@@ -12,8 +12,7 @@ i posti mancanti non vengono riempiti con altre strutture.
 
 Nella vertical slice attuale sono disponibili tre carte upgrade per ciascuna
 struttura presente nel pool: sono escluse quelle marcate `DOPO` nelle tabelle
-sotto. Lo Scudo e i suoi upgrade sono implementati ma temporaneamente esclusi
-dalle carte. Con tutti e tre gli slot occupati, le carte struttura non
+sotto. Con tutti e tre gli slot occupati, le carte struttura non
 compaiono.
 Non esiste il pulsante «Continua senza struttura»: si sceglie una carta e, per
 le carte struttura, lo slot in cui piazzarla. Se non esiste alcuna carta
@@ -73,21 +72,6 @@ potenza di fuoco senza rendere obbligatoria una build da fuoco rapido.
 | Rete energetica | Le strutture automatiche negli slot adiacenti sparano piu spesso. |
 forse: Il giocatore spara colpi istantanei laser? 
 
-### Scudo
-
-Lo Scudo copre tutta la larghezza del campo di gioco e, di base, intercetta
-solo le bombe. Per ora non compare fra le carte. Quando verra riattivato, le
-sue carte ne aumenteranno l'affidabilita oppure gli permetteranno di gestire
-anche gli invasori.
-
-| Carta | Effetto |
-| --- | --- |
-| Capacita aumentata | Conserva una carica di intercettazione aggiuntiva. |
-| Ricarica rapida | Riduce il numero di ondate necessario per recuperare una carica. |
-| Campo di arresto | Lo Scudo puo intercettare anche un invasore che raggiunge la base. |
-| Riflesso | Una bomba intercettata viene rilanciata verso i nemici. |
-| Conversione energia | Intercettare una bomba carica immediatamente una carica dello Scudo. |
-
 ### Fabbrica droni
 
 I droni possono essere trasformati in una fonte di danno istantaneo: il laser
@@ -105,8 +89,10 @@ premiano copertura, danno e scelta consapevole della priorita.
 
 ### Torretta
 
-La Torretta offre potenza di fuoco affidabile per una corsia. Le scelte creano
-build diverse: volume, velocita, controllo dell'area o precisione.
+La Torretta controlla una corsia larga 220 pixel: cerca il nemico piu basso al
+suo interno, corregge leggermente il tiro e spara ogni 700 ms. I suoi proiettili
+sono il 20% piu veloci di quelli base. Le scelte creano build diverse: volume,
+velocita, controllo dell'area o precisione.
 
 | Carta | Effetto |
 | --- | --- |
@@ -181,14 +167,10 @@ e non una condizione necessaria per sopravvivere.
 | Centrale + Fabbrica droni | Baia sovralimentata | I droni si muovono e riagganciano il bersaglio piu rapidamente; il primo laser di ogni ondata infligge danno aumentato. |
 | Deposito munizioni + Torretta | Ricarica incrociata | Quando il player attiva lo spatter, la torretta collegata spara subito una raffica gratuita. |
 | Deposito munizioni + Radar | Salva di precisione | I tre colpi dello spatter si chiudono verso il bersaglio marcato, se presente. |
-| Scudo + Muro | Linea fortificata | Una bomba intercettata dallo Scudo ripara un punto integrita del Muro collegato. |
-| Scudo + Torretta | Contromisure | Intercettare una bomba fa sparare immediatamente la torretta verso il bombardiere responsabile. |
-| Scudo + Radar | Allarme preventivo | Il Radar marca prioritariamente il bombardiere che ha una bomba attiva; lo Scudo ricarica piu rapidamente dopo la sua eliminazione. |
 
-Le prime sinergie consigliate sono `Radar + Torretta`, `Fabbrica droni +
-Torretta` e `Scudo + Muro`: hanno un legame visivo facile da capire e
-introducono rispettivamente controllo del bersaglio, trasformazione del fuoco e
-difesa coordinata.
+Le prime sinergie consigliate sono `Radar + Torretta` e `Fabbrica droni +
+Torretta`: hanno un legame visivo facile da capire e introducono rispettivamente
+controllo del bersaglio e trasformazione del fuoco.
 
 ## Ordine di implementazione consigliato
 
@@ -198,8 +180,7 @@ difesa coordinata.
    tre carte struttura solo quando esiste una struttura bersaglio valida.
 3. Implementare prima le carte semplici e numeriche di Torretta, Centrale,
    Muro e Deposito.
-4. Implementare Scudo e Radar completi, poi le carte che dipendono dalle loro
-   meccaniche di carica e marcatura.
+4. Implementare il Radar completo, poi le carte che dipendono dalla marcatura.
 5. Implementare il laser istantaneo dei droni prima delle carte di danno,
    perforazione e priorita del bersaglio.
 6. Introdurre le carte sinergia soltanto dopo che ogni struttura possiede uno

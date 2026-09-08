@@ -75,6 +75,15 @@ export class DroneFactory extends OutpostStructure {
     }
   }
 
+  protected override onUpgradeRemoved(id: string): void {
+    if (id === "assembly-line") this.drones.pop()?.destroy();
+    if (id === "priority-targeting") {
+      this.priorityButton?.destroy();
+      this.priorityButton = undefined;
+      this.priority = "lowest";
+    }
+  }
+
   private get weapon(): PlayerWeapon {
     return this.scene.data.get(RUN_DATA.weapon) as PlayerWeapon;
   }

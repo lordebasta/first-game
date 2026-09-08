@@ -60,6 +60,7 @@ function load(relativePath) {
 
 const { Scout } = load('src/game/entities/Scout.ts');
 const { ScoutVeteran } = load('src/game/entities/ScoutVeteran.ts');
+const { CarrierBoss } = load('src/game/entities/CarrierBoss.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
 const { Drone } = load('src/game/entities/Drone.ts');
@@ -69,16 +70,15 @@ const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
 const { WALL_UPGRADES } = load('src/game/entities/structures/Wall.ts');
 const { POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
-const { SHIELD_UPGRADES } = load('src/game/entities/structures/Shield.ts');
 const { DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
 const { AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
+const { WAVES, LAST_LEVEL } = load('src/game/systems/WaveDefinitions.ts');
 
 test('every implemented structure exposes exactly three upgrades', () => {
   for (const upgrades of [
     WALL_UPGRADES,
     POWER_PLANT_UPGRADES,
-    SHIELD_UPGRADES,
     DRONE_FACTORY_UPGRADES,
     TURRET_UPGRADES,
     RADAR_UPGRADES,
@@ -86,6 +86,66 @@ test('every implemented structure exposes exactly three upgrades', () => {
   ]) {
     assert.equal(upgrades.length, 3);
   }
+});
+
+test('the vertical slice authors ten waves and ends with the escorted carrier boss', () => {
+  assert.equal(LAST_LEVEL, 10);
+  assert.equal(WAVES.length, 10);
+  assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'carrier-boss').length, 1);
+  assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 12);
+  assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
+  assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.speedMultiplier), [1.35, 1.55, 1.75, 2]);
+  assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'infantry').length), [18, 18, 30, 36]);
+  assert.equal(WAVES[8].enemies.filter((enemy) => enemy.kind === 'infantry' && enemy.health === 6).length, 12);
+  assert(WAVES.slice(5, 10).flatMap((wave) => wave.enemies)
+    .filter((enemy) => enemy.kind === 'infantry')
+    .every((enemy) => enemy.health >= 4));
+  for (const wave of WAVES.slice(5, 9)) {
+    const scouts = wave.enemies.filter((enemy) => enemy.kind === 'scout');
+    assert.equal(scouts[0].spawnDelayMs, 0);
+    assert.equal(scouts.at(-1).spawnDelayMs, 5_000);
+  }
+});
+
+test('carrier boss patrols without descending and drops scouts without an active limit', () => {
+  const bars = [];
+  const scene = {
+    add: {
+      graphics,
+      existing() {},
+      rectangle(x, y, width) {
+        const bar = {
+          x, y, displayWidth: width, visible: true,
+          setDepth() { return this; }, setOrigin() { return this; },
+          setVisible(value) { this.visible = value; return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+        };
+        bars.push(bar);
+        return bar;
+      },
+    },
+    physics: { add: { existing() {} } },
+  };
+  const deployed = [];
+  const group = { getChildren: () => deployed, add: (enemy) => deployed.push(enemy) };
+  const boss = new CarrierBoss(scene, group);
+  boss.spawn(360, 94);
+  boss.displayHeight = 44;
+  boss.updateMovement(1_600, 1_600);
+
+  assert.equal(boss.y, 94);
+  assert.equal(deployed.length, 1);
+  assert(deployed[0] instanceof Scout);
+  assert.equal(boss.getHealth(), 60);
+  assert.equal(boss.tint, 0xffdc57);
+  assert.equal(deployed[0].getHealth(), 2);
+  assert.equal(bars.every((bar) => bar.visible), true);
+
+  boss.updateMovement(17_200, 15_600);
+  assert.equal(deployed.length, 9);
+
+  for (let hit = 0; hit < 45; hit += 1) boss.receiveHit({ damage: 1 });
+  assert.equal(boss.tint, 0xffdc57);
 });
 
 test('radar vulnerability adds damage instead of multiplying it', () => {
@@ -222,7 +282,6 @@ test('card quotas follow free slots and never replace missing upgrades with stru
     assert.equal(hand.length, 3);
     assert.equal(hand.filter((card) => card.description.startsWith('Torretta:')).length, 3 - free);
   }
-  assert.equal(cards([undefined, undefined, undefined]).some((card) => card.name === 'SCUDO'), false);
   assert.equal(cards([undefined, undefined, structureWithoutUpgrades('wall')]).length, 2);
 });
 
@@ -270,7 +329,6 @@ test('structure cards only target empty slots', () => {
   assert(hand.every((card) => card.kind === 'structure'));
   assert(hand.every((card) => card.targets.length === 1));
   assert(hand.every((card) => card.targets[0].label === 'SLOT 1'));
-  assert.equal(hand.some((card) => card.name === 'SCUDO'), false);
   assert.equal(structureCards([turret(), turret(), turret()]).length, 0);
 });
 

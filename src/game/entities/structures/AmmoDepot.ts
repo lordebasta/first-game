@@ -33,6 +33,10 @@ export class AmmoDepot extends OutpostStructure {
     this.refreshWeaponConfiguration();
   }
 
+  protected override onUpgradeRemoved(_id: string): void {
+    this.refreshWeaponConfiguration();
+  }
+
   private refreshWeaponConfiguration(): void {
     this.weapon.setAreaShotSource(this, {
       every: this.hasUpgrade("rapid-supply") ? 4 : 5,

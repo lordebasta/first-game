@@ -82,4 +82,8 @@ export class Wall extends OutpostStructure {
       this.health += 1;
     }
   }
+
+  protected override onUpgradeRemoved(id: string): void {
+    if (id === "reinforced") this.health = Math.min(this.health, 2);
+  }
 }

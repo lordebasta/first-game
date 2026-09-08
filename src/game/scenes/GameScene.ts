@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import { COLORS, GAME_WIDTH } from "../constants";
 import { Player } from "../entities/Player";
-import { Bomb } from "../entities/Bomb";
 import { createGameTextures } from "../graphics/createGameTextures";
 import { PlayerCommandSource } from "../input/PlayerCommands";
 import { CombatSystem, type ProjectileImpact } from "../systems/CombatSystem";
@@ -15,6 +14,8 @@ import { DevToolsView } from "../ui/DevToolsView";
 import { RUN_DATA } from "../RunData";
 import { BackgroundMusic } from "../audio/BackgroundMusic";
 import { PauseView } from "../ui/PauseView";
+import { DevStructureView } from "../ui/DevStructureView";
+import { DevWaveView } from "../ui/DevWaveView";
 
 const PLAYER_Y = 580;
 const CORE_Y = 678;
@@ -27,6 +28,8 @@ export class GameScene extends Phaser.Scene {
   private outpostCards!: OutpostCardSystem;
   private structureChoice?: StructureChoiceView;
   private pauseView?: PauseView;
+  private devStructureView?: DevStructureView;
+  private devWaveView?: DevWaveView;
   private backgroundMusic?: BackgroundMusic;
   private core!: Phaser.GameObjects.Rectangle;
   private waveText!: Phaser.GameObjects.Text;
@@ -47,6 +50,8 @@ export class GameScene extends Phaser.Scene {
     this.gameplayPaused = false;
     this.structureChoice = undefined;
     this.pauseView = undefined;
+    this.devStructureView = undefined;
+    this.devWaveView = undefined;
     // Defensive reset in case a future scene pauses the shared Arcade world.
     this.physics.resume();
     this.data.reset();
@@ -65,14 +70,12 @@ export class GameScene extends Phaser.Scene {
       (wave) => this.handleWaveCleared(wave),
       () => this.endGame(true),
     );
-    const bombs = this.physics.add.group({ classType: Bomb });
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
     this.data.set({
       [RUN_DATA.player]: this.player,
       [RUN_DATA.weapon]: weapon,
       [RUN_DATA.enemies]: this.enemySpawner.group,
-      [RUN_DATA.bombs]: bombs,
       [RUN_DATA.coreLineY]: CORE_Y - 18,
       [RUN_DATA.lastLevel]: LAST_LEVEL,
     });
@@ -105,6 +108,10 @@ export class GameScene extends Phaser.Scene {
       this.backgroundMusic = undefined;
       this.pauseView?.destroy();
       this.pauseView = undefined;
+      this.devStructureView?.destroy();
+      this.devStructureView = undefined;
+      this.devWaveView?.destroy();
+      this.devWaveView = undefined;
     });
 
     this.enemySpawner.start(this.time.now);
@@ -140,7 +147,25 @@ export class GameScene extends Phaser.Scene {
 
   private openDevStructureChoice(): void {
     if (this.gameEnded || this.gameplayPaused) return;
-    this.showStructureChoice(this.outpostCards.drawStructures());
+    this.pauseGame(true);
+    this.devStructureView = new DevStructureView(this, {
+      slots: this.structureSlots,
+      onClose: () => this.closeDevStructureChoice(),
+    });
+  }
+
+  private openDevWaveChoice(): void {
+    if (this.gameEnded || this.gameplayPaused) return;
+    this.pauseGame(true);
+    this.devWaveView = new DevWaveView(this, {
+      lastWave: this.lastLevel,
+      onChoose: (wave) => {
+        this.enemySpawner.skipToWave(wave, this.time.now);
+        this.waveText.setText(`ONDATA  ${wave.toString().padStart(2, "0")} / ${this.lastLevel}`);
+        this.closeDevWaveChoice();
+      },
+      onClose: () => this.closeDevWaveChoice(),
+    });
   }
 
   private showStructureChoice(choices: ReturnType<OutpostCardSystem["draw"]>): void {
@@ -164,6 +189,7 @@ export class GameScene extends Phaser.Scene {
       actions: [
         { label: "DEV: ELIMINA", onClick: () => this.enemySpawner.eliminateAll() },
         { label: "DEV: STRUTTURA", onClick: () => this.openDevStructureChoice() },
+        { label: "DEV: ONDATA", onClick: () => this.openDevWaveChoice() },
       ],
       getDebugLines: () => this.getDebugLines(),
     });
@@ -188,6 +214,14 @@ export class GameScene extends Phaser.Scene {
 
   private togglePauseMenu(): void {
     if (this.gameEnded || this.structureChoice) return;
+    if (this.devStructureView) {
+      this.closeDevStructureChoice();
+      return;
+    }
+    if (this.devWaveView) {
+      this.closeDevWaveChoice();
+      return;
+    }
     if (this.pauseView) {
       this.closePauseMenu();
       return;
@@ -202,6 +236,18 @@ export class GameScene extends Phaser.Scene {
   private closePauseMenu(): void {
     this.pauseView?.destroy();
     this.pauseView = undefined;
+    this.pauseGame(false);
+  }
+
+  private closeDevStructureChoice(): void {
+    this.devStructureView?.destroy();
+    this.devStructureView = undefined;
+    this.pauseGame(false);
+  }
+
+  private closeDevWaveChoice(): void {
+    this.devWaveView?.destroy();
+    this.devWaveView = undefined;
     this.pauseGame(false);
   }
 

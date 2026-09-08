@@ -57,4 +57,9 @@ export class Radar extends OutpostStructure {
     this.markedEnemies.forEach((enemy) => enemy.setMarked(false));
     this.markedEnemies = [];
   }
+
+  protected override onUpgradeRemoved(_id: string): void {
+    this.markedEnemies.forEach((enemy) => enemy.setMarked(false));
+    this.markedEnemies = [];
+  }
 }

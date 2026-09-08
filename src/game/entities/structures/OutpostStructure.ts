@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../../constants";
 
-export type StructureKind = "wall" | "power-plant" | "shield" | "drone-factory" | "turret" | "radar" | "ammo-depot";
+export type StructureKind = "wall" | "power-plant" | "drone-factory" | "turret" | "radar" | "ammo-depot";
 
 export interface StructureDefinition {
   kind: StructureKind;
@@ -80,6 +80,11 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     this.onUpgradeApplied(id);
   }
 
+  removeUpgrade(id: string): void {
+    if (!this.upgrades.delete(id)) return;
+    this.onUpgradeRemoved(id);
+  }
+
   /** Hook used by adjacent Power Plants; only automatic structures override it. */
   setAdjacentFireRateMultiplier(_multiplier: number): void {}
 
@@ -92,4 +97,6 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
   protected onRepair(): void {}
 
   protected onUpgradeApplied(_id: string): void {}
+
+  protected onUpgradeRemoved(_id: string): void {}
 }

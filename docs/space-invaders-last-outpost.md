@@ -66,7 +66,6 @@ L'avamposto ha una fila di **quattro slot**. Ogni struttura ha due punti integri
 
 - **Muro:** struttura base sempre disponibile; occupa uno slot, estende una linea difensiva per tutta la larghezza del campo e assorbe due invasori senza altri effetti.
 - **Centrale** *(comune)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
-- **Scudo** *(rara, temporaneamente fuori dal pool)*: intercetta senza danni la prima bomba lungo tutta la larghezza del campo; poi si ricarica dopo alcune ondate se resta integro.
 - **Fabbrica droni** *(rara)*: crea periodicamente un piccolo drone che si muove e spara all'invasore piu in basso.
 - **Torretta** *(comune)*: spara verso l'alto, davanti al proprio slot.
 - **Radar:** marca il nemico piu resistente e aggiunge +1 al danno che riceve.

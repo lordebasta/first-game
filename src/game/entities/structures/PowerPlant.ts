@@ -45,6 +45,12 @@ export class PowerPlant extends OutpostStructure {
     if (id === "power-grid") this.setNeighboursFireRate(0.8);
   }
 
+  protected override onUpgradeRemoved(id: string): void {
+    if (id === "overcharged") this.player.changeMovementMultiplier(-0.2);
+    if (id === "reserve-cells") this.weapon.changeProjectileSpeedMultiplier(-0.3);
+    if (id === "power-grid") this.setNeighboursFireRate(1);
+  }
+
   private setNeighboursFireRate(multiplier: number): void {
     const structures = (this.scene.data.get(RUN_DATA.structureSlots) as StructureSlots).getStructures();
     const ownSlot = structures.indexOf(this);

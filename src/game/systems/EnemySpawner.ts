@@ -4,7 +4,8 @@ import { Enemy } from "../entities/Enemy";
 import { Infantry } from "../entities/Infantry";
 import { Scout } from "../entities/Scout";
 import { ScoutVeteran } from "../entities/ScoutVeteran";
-import { getWaveDefinition, LAST_LEVEL, type EnemyKind } from "./WaveDefinitions";
+import { CarrierBoss } from "../entities/CarrierBoss";
+import { getWaveDefinition, LAST_LEVEL, type EnemyKind, type WaveEnemy } from "./WaveDefinitions";
 
 const START_Y = 94;
 const COLUMN_GAP = 68;
@@ -14,6 +15,14 @@ const DESCENT = 30;
 const START_SPEED = 42;
 const ELIMINATION_SPEED_BONUS = 2;
 const NEXT_WAVE_DELAY_MS = 850;
+const MAX_FORMATION_SPEED = 150;
+
+interface PendingEnemySpawn {
+  enemy: WaveEnemy;
+  x: number;
+  y: number;
+  remainingMs: number;
+}
 
 export class EnemySpawner {
   readonly group: Phaser.Physics.Arcade.Group;
@@ -24,7 +33,7 @@ export class EnemySpawner {
   private suspended = false;
   private campaignComplete = false;
   private formationMembers: Enemy[] = [];
-  private independentMembers: Enemy[] = [];
+  private pendingSpawns: PendingEnemySpawn[] = [];
   private formationTotal = 0;
 
   constructor(
@@ -46,9 +55,10 @@ export class EnemySpawner {
     if (this.suspended || this.campaignComplete) {
       return;
     }
+    this.deployPendingEnemies(delta);
     const formationEnemies = this.activeMembers(this.formationMembers);
-    const independentEnemies = this.activeMembers(this.independentMembers);
-    if (formationEnemies.length === 0 && independentEnemies.length === 0) {
+    const independentEnemies = this.activeEnemies().filter((enemy) => !enemy.usesFormationMovement());
+    if (formationEnemies.length === 0 && independentEnemies.length === 0 && this.pendingSpawns.length === 0) {
       this.scheduleOrDeployNextWave(time);
       return;
     }
@@ -94,6 +104,13 @@ export class EnemySpawner {
     }
   }
 
+  skipToWave(wave: number, time: number): void {
+    this.eliminateAll();
+    this.wave = Phaser.Math.Clamp(Math.floor(wave), 1, LAST_LEVEL);
+    this.campaignComplete = false;
+    this.deployFormation(time);
+  }
+
   getDebugValues(): { wave: number; activeEnemies: number } {
     return {
       wave: this.wave,
@@ -114,27 +131,43 @@ export class EnemySpawner {
     this.direction = 1;
     this.nextWaveAt = undefined;
     this.formationMembers = [];
-    this.independentMembers = [];
+    this.pendingSpawns = [];
     this.formationTotal = 0;
 
     const definition = getWaveDefinition(this.wave);
     const formationWidth = (definition.columns - 1) * COLUMN_GAP;
     const startX = (GAME_WIDTH - formationWidth) / 2;
 
-    definition.enemies.forEach(({ kind, health }, index) => {
-      const row = Math.floor(index / definition.columns);
-      const column = index % definition.columns;
-      const enemy = this.createEnemy(kind);
+    definition.enemies.forEach((enemy, index) => {
+      const row = enemy.row ?? Math.floor(index / definition.columns);
+      const column = enemy.column ?? index % definition.columns;
       const x = startX + column * COLUMN_GAP;
       const y = START_Y + row * ROW_GAP;
-      enemy.spawn(x, y, { health });
-      if (enemy.usesFormationMovement()) {
-        this.formationMembers.push(enemy);
-        this.formationTotal += 1;
+      if ((enemy.spawnDelayMs ?? 0) > 0) {
+        this.pendingSpawns.push({ enemy, x, y, remainingMs: enemy.spawnDelayMs ?? 0 });
       } else {
-        this.independentMembers.push(enemy);
+        this.spawnEnemy(enemy, x, y);
       }
     });
+  }
+
+  private deployPendingEnemies(delta: number): void {
+    const waiting: PendingEnemySpawn[] = [];
+    for (const pending of this.pendingSpawns) {
+      pending.remainingMs -= delta;
+      if (pending.remainingMs <= 0) this.spawnEnemy(pending.enemy, pending.x, pending.y);
+      else waiting.push(pending);
+    }
+    this.pendingSpawns = waiting;
+  }
+
+  private spawnEnemy({ kind, health }: WaveEnemy, x: number, y: number): void {
+    const enemy = this.createEnemy(kind);
+    enemy.spawn(x, y, { health });
+    if (enemy.usesFormationMovement()) {
+      this.formationMembers.push(enemy);
+      this.formationTotal += 1;
+    }
   }
 
   private scheduleOrDeployNextWave(time: number): void {
@@ -166,7 +199,10 @@ export class EnemySpawner {
   private formationSpeed(activeEnemies: number): number {
     const eliminated = this.formationTotal - activeEnemies;
     const definition = getWaveDefinition(this.wave);
-    return (START_SPEED + eliminated * ELIMINATION_SPEED_BONUS) * definition.speedMultiplier;
+    return Math.min(
+      MAX_FORMATION_SPEED,
+      (START_SPEED + eliminated * ELIMINATION_SPEED_BONUS) * definition.speedMultiplier,
+    );
   }
 
   private createEnemy(kind: EnemyKind): Enemy {
@@ -192,6 +228,8 @@ export class EnemySpawner {
         return enemy instanceof ScoutVeteran;
       case "infantry":
         return enemy instanceof Infantry;
+      case "carrier-boss":
+        return enemy instanceof CarrierBoss;
     }
   }
 
@@ -203,6 +241,8 @@ export class EnemySpawner {
         return new ScoutVeteran(this.scene);
       case "infantry":
         return new Infantry(this.scene);
+      case "carrier-boss":
+        return new CarrierBoss(this.scene, this.group);
     }
   }
 

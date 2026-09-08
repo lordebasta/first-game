@@ -53,4 +53,17 @@ export function createGameTextures(scene: Phaser.Scene): void {
     graphics.generateTexture("scout-veteran", 36, 26);
     graphics.destroy();
   }
+
+  if (!scene.textures.exists("carrier-boss")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillRoundedRect(8, 8, 96, 30, 10);
+    graphics.fillTriangle(0, 22, 22, 2, 22, 42);
+    graphics.fillTriangle(112, 22, 90, 2, 90, 42);
+    graphics.fillStyle(0x555555, 1);
+    graphics.fillCircle(38, 23, 7);
+    graphics.fillCircle(74, 23, 7);
+    graphics.generateTexture("carrier-boss", 112, 44);
+    graphics.destroy();
+  }
 }

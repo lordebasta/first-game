@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-/** A future Bombardier projectile. Shield already consumes this shared contract. */
+/** Projectile reserved for the future Bombardier enemy. */
 export class Bomb extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, x = 0, y = 0) {
     super(scene, x, y, "enemy");

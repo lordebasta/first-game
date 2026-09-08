@@ -57,6 +57,14 @@ export class StructureSlots {
     });
   }
 
+  removeUpgrade(kind: StructureKind, upgradeId: string): void {
+    const upgrades = this.structureUpgrades.get(kind);
+    if (!upgrades?.delete(upgradeId)) return;
+    this.structures.forEach((structure) => {
+      if (structure?.definition.kind === kind) structure.removeUpgrade(upgradeId);
+    });
+  }
+
   private drawSlots(): void {
     SLOT_X.forEach((x, index) => {
       this.scene.add.rectangle(x, SLOT_Y, SLOT_WIDTH, 52, 0x0b1a2d, 0.55).setStrokeStyle(2, 0x57728d).setDepth(-1);
