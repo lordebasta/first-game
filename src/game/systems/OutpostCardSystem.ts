@@ -15,43 +15,27 @@ export class OutpostCardSystem {
 
   draw(): OutpostCard[] {
     const structures = this.slots.getStructures();
-    const structureCards: OutpostCard[] = [];
     const upgradeCards: OutpostCard[] = [];
     const freeSlots = structures.filter((structure) => !structure).length;
-    if (freeSlots > 0) {
-      for (const StructureClass of STRUCTURE_CLASSES) {
-        structureCards.push({
-          kind: "structure",
-          name: StructureClass.definition.name,
-          description: StructureClass.definition.description,
-          targets: structures.flatMap((structure, slot) =>
-            structure?.definition.kind === StructureClass.definition.kind ? [] : [{
-              label: this.slots.labelFor(slot),
-              apply: () => this.slots.place(slot, StructureClass),
-            }]),
-        });
-      }
-    }
+    const structureCards = freeSlots > 0 ? this.buildStructureCards() : [];
     const upgradeKinds = new Map<string, NonNullable<typeof structures[number]>>();
     for (const structure of structures) {
-      if (structure && typeof structure.getUpgradeDefinitions === "function") {
+      if (structure && structure.definition.availableInCards !== false) {
         upgradeKinds.set(structure.definition.kind, structure);
       }
     }
     for (const sample of upgradeKinds.values()) {
       for (const upgrade of sample.getUpgradeDefinitions()) {
-        const targets = structures.flatMap((structure, slot) =>
-          structure?.definition.kind === sample.definition.kind && !structure.hasUpgrade(upgrade.id) ? [{
-            label: `${structure.definition.name} ${slot + 1}`,
-            apply: () => structure.applyUpgrade(upgrade.id),
-          }] : []);
-        if (targets.length > 0) {
+        if (!this.slots.hasUpgrade(sample.definition.kind, upgrade.id)) {
           const structureName = sample.definition.name.charAt(0) + sample.definition.name.slice(1).toLowerCase();
           upgradeCards.push({
             kind: "upgrade",
             name: upgrade.name,
             description: `${structureName}: ${upgrade.description}`,
-            targets,
+            targets: [{
+              label: `TUTTE: ${sample.definition.name}`,
+              apply: () => this.slots.applyUpgrade(sample.definition.kind, upgrade.id),
+            }],
           });
         }
       }
@@ -60,5 +44,28 @@ export class OutpostCardSystem {
       ...Phaser.Utils.Array.Shuffle(structureCards).slice(0, freeSlots),
       ...Phaser.Utils.Array.Shuffle(upgradeCards).slice(0, 3 - freeSlots),
     ];
+  }
+
+  drawStructures(): OutpostCard[] {
+    return Phaser.Utils.Array.Shuffle(this.buildStructureCards()).slice(0, 3);
+  }
+
+  private buildStructureCards(): OutpostCard[] {
+    const structures = this.slots.getStructures();
+    return STRUCTURE_CLASSES.flatMap((StructureClass) => {
+      if (StructureClass.definition.availableInCards === false) return [];
+      const targets = structures.flatMap((structure, slot) =>
+        structure?.definition.kind === StructureClass.definition.kind ? [] : [{
+          label: this.slots.labelFor(slot),
+          apply: () => this.slots.place(slot, StructureClass),
+        }]);
+      if (targets.length === 0) return [];
+      return [{
+        kind: "structure" as const,
+        name: StructureClass.definition.name,
+        description: StructureClass.definition.description,
+        targets,
+      }];
+    });
   }
 }

@@ -18,11 +18,7 @@ export class AmmoDepot extends OutpostStructure {
   } as const;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, AmmoDepot.definition);
-  }
-
-  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return AMMO_DEPOT_UPGRADES;
+    super(scene, x, y, AmmoDepot.definition, AMMO_DEPOT_UPGRADES);
   }
 
   protected override onInstall(): void {

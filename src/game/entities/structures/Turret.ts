@@ -26,16 +26,12 @@ export class Turret extends OutpostStructure {
   private nextShotAt = 0;
   private adjacentFireRateMultiplier = 1;
 
-  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return TURRET_UPGRADES;
-  }
-
   override setAdjacentFireRateMultiplier(multiplier: number): void {
     this.adjacentFireRateMultiplier = multiplier;
   }
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, Turret.definition);
+    super(scene, x, y, Turret.definition, TURRET_UPGRADES);
   }
 
   protected override onUpdate(time: number): void {

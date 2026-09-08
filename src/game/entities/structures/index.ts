@@ -3,7 +3,6 @@ import { AmmoDepot } from "./AmmoDepot";
 import { DroneFactory } from "./DroneFactory";
 import { PowerPlant } from "./PowerPlant";
 import { Radar } from "./Radar";
-import { Shield } from "./Shield";
 import { type OutpostStructure, type StructureConstructor } from "./OutpostStructure";
 import { Turret } from "./Turret";
 import { Wall } from "./Wall";
@@ -13,7 +12,6 @@ export { type StructureConstructor, type StructureDefinition } from "./OutpostSt
 export const STRUCTURE_CLASSES: readonly StructureConstructor[] = [
   Wall,
   PowerPlant,
-  Shield,
   DroneFactory,
   Turret,
   Radar,

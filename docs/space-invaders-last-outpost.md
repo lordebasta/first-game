@@ -64,12 +64,12 @@ Il nucleo ha **una sola vita**. Se un invasore supera uno slot vuoto o una strut
 
 L'avamposto ha una fila di **quattro slot**. Ogni struttura ha due punti integrita: il primo invasore che la raggiunge la danneggia e viene distrutto; il secondo la distrugge e lascia lo slot vuoto. Durante una pausa, una struttura danneggiata recupera il danno; una struttura distrutta non torna automaticamente.
 
-- **Muro:** struttura base sempre disponibile; riempie uno slot vuoto e assorbe due invasori senza altri effetti.
+- **Muro:** struttura base sempre disponibile; occupa uno slot, estende una linea difensiva per tutta la larghezza del campo e assorbe due invasori senza altri effetti.
 - **Centrale** *(comune)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
-- **Scudo** *(rara)*: intercetta senza danni il primo invasore che raggiunge lo slot; poi si ricarica dopo alcune ondate se resta integro.
+- **Scudo** *(rara, temporaneamente fuori dal pool)*: intercetta senza danni la prima bomba lungo tutta la larghezza del campo; poi si ricarica dopo alcune ondate se resta integro.
 - **Fabbrica droni** *(rara)*: crea periodicamente un piccolo drone che si muove e spara all'invasore piu in basso.
 - **Torretta** *(comune)*: spara verso l'alto, davanti al proprio slot.
-- **Radar:** aumenta i punti degli invasori marcati e marca comandante e bombardiere, rendendoli piu vulnerabili.
+- **Radar:** marca il nemico piu resistente e aggiunge +1 al danno che riceve.
 - **Deposito munizioni:** ogni quinto attacco del giocatore diventa ad area.
 
 La scelta e sempre locale e rapida: riempire uno slot con un muro, aggiungere una struttura utile o sacrificare una struttura esistente per sostituirla.

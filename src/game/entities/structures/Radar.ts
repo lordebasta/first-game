@@ -21,11 +21,7 @@ export class Radar extends OutpostStructure {
   private markedEnemies: Enemy[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, Radar.definition);
-  }
-
-  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return RADAR_UPGRADES;
+    super(scene, x, y, Radar.definition, RADAR_UPGRADES);
   }
 
   protected override onUpdate(_time: number): void {
@@ -45,8 +41,8 @@ export class Radar extends OutpostStructure {
     if (targets.length === this.markedEnemies.length && targets.every((target, index) => target === this.markedEnemies[index])) return;
 
     this.markedEnemies.filter((enemy) => !targets.includes(enemy)).forEach((enemy) => enemy.setMarked(false));
-    const damageMultiplier = this.hasUpgrade("weak-point") ? 3 : 2;
-    targets.forEach((enemy) => enemy.setMarked(true, damageMultiplier));
+    const damageBonus = this.hasUpgrade("weak-point") ? 2 : 1;
+    targets.forEach((enemy) => enemy.setMarked(true, damageBonus));
     this.markedEnemies = targets;
   }
 
@@ -56,7 +52,7 @@ export class Radar extends OutpostStructure {
   }
 
   protected override onUpgradeApplied(_id: string): void {
-    // Force an immediate refresh (including a new vulnerability multiplier).
+    // Force an immediate refresh (including a new vulnerability bonus).
     this.markedEnemies.forEach((enemy) => enemy.setMarked(false));
     this.markedEnemies = [];
   }

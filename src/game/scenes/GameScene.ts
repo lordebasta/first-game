@@ -115,7 +115,15 @@ export class GameScene extends Phaser.Scene {
 
   private openStructureChoice(): void {
     this.structureSlots.repairAll();
-    const choices = this.outpostCards.draw();
+    this.showStructureChoice(this.outpostCards.draw());
+  }
+
+  private openDevStructureChoice(): void {
+    if (this.gameEnded || this.choosingStructure) return;
+    this.showStructureChoice(this.outpostCards.drawStructures());
+  }
+
+  private showStructureChoice(choices: ReturnType<OutpostCardSystem["draw"]>): void {
     if (choices.length === 0) return;
     this.pauseGame(true);
     this.structureChoice = new StructureChoiceView(this, {
@@ -133,7 +141,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     new DevToolsView(this, {
-      actions: [{ label: "DEV: ELIMINA", onClick: () => this.enemySpawner.eliminateAll() }],
+      actions: [
+        { label: "DEV: ELIMINA", onClick: () => this.enemySpawner.eliminateAll() },
+        { label: "DEV: STRUTTURA", onClick: () => this.openDevStructureChoice() },
+      ],
       getDebugLines: () => this.getDebugLines(),
     });
   }

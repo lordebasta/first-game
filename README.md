@@ -33,3 +33,11 @@ npm test
 I test di regressione coprono nemici, teletrasporto, carte e combattimento
 con un adattatore minimo di Phaser, senza dipendenze aggiuntive. Non sostituiscono
 il playtest in browser per rendering e collisioni Arcade.
+
+## Diagnostica in sviluppo
+
+Con `npm run dev`, il pannello laterale mostra FPS, durata media del frame e
+tempo medio/picco trascorso nell'aggiornamento della scena. `CPU SCENA` e una
+misura del lavoro sincrono fra `PRE_UPDATE` e `POST_UPDATE`: non include il
+rendering GPU e non isola il carico causato da altre schede o processi del
+browser.

@@ -1,16 +1,17 @@
 import Phaser from "phaser";
 import { GAME_WIDTH } from "../constants";
 import { createStructure, type StructureConstructor } from "../entities/structures";
-import { type OutpostStructure } from "../entities/structures/OutpostStructure";
+import { type OutpostStructure, type StructureKind } from "../entities/structures/OutpostStructure";
 
 
 const SLOT_Y = 625;
 const SLOT_X = [170, GAME_WIDTH / 2, 550] as const;
 const SLOT_WIDTH = 178;
 
-/** Keeps track only of slot occupancy and delegates behaviour to each structure entity. */
+/** Owns slot occupancy and the run-wide upgrades acquired for each structure type. */
 export class StructureSlots {
   private readonly structures: Array<OutpostStructure | undefined> = [undefined, undefined, undefined];
+  private readonly structureUpgrades = new Map<StructureKind, Set<string>>();
 
   constructor(private readonly scene: Phaser.Scene) {
     this.drawSlots();
@@ -25,6 +26,9 @@ export class StructureSlots {
     const structure = createStructure(StructureClass, this.scene, SLOT_X[slot], SLOT_Y);
     this.structures[slot] = structure;
     structure.install();
+    for (const upgradeId of this.structureUpgrades.get(structure.definition.kind) ?? []) {
+      structure.applyUpgrade(upgradeId);
+    }
   }
 
   labelFor(slot: number): string {
@@ -37,6 +41,20 @@ export class StructureSlots {
 
   getStructures(): readonly (OutpostStructure | undefined)[] {
     return [...this.structures];
+  }
+
+  hasUpgrade(kind: StructureKind, upgradeId: string): boolean {
+    return this.structureUpgrades.get(kind)?.has(upgradeId) ?? false;
+  }
+
+  applyUpgrade(kind: StructureKind, upgradeId: string): void {
+    if (this.hasUpgrade(kind, upgradeId)) return;
+    const upgrades = this.structureUpgrades.get(kind) ?? new Set<string>();
+    upgrades.add(upgradeId);
+    this.structureUpgrades.set(kind, upgrades);
+    this.structures.forEach((structure) => {
+      if (structure?.definition.kind === kind) structure.applyUpgrade(upgradeId);
+    });
   }
 
   private drawSlots(): void {

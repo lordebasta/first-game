@@ -8,6 +8,7 @@ export interface StructureDefinition {
   name: string;
   description: string;
   color: number;
+  availableInCards?: boolean;
 }
 
 export interface StructureConstructor {
@@ -30,6 +31,7 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     x: number,
     y: number,
     readonly definition: StructureDefinition,
+    private readonly upgradeDefinitions: readonly StructureUpgrade[],
   ) {
     const base = scene.add.rectangle(0, 0, 178, 52, COLORS.panel).setStrokeStyle(3, definition.color);
     const roof = scene.add.triangle(0, -29, 0, 18, 42, 18, 21, 0, definition.color);
@@ -63,7 +65,7 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
   }
 
   getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return [];
+    return this.upgradeDefinitions;
   }
 
   hasUpgrade(id: string): boolean {

@@ -17,7 +17,7 @@ const HEALTH_COLORS = [0xff5470, 0xb86aff, 0x428dff, 0xffdc57] as const;
 export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hittable {
   private currentHealth = 1;
   private marked = false;
-  private markedDamageMultiplier = 2;
+  private markedDamageBonus = 1;
   private marker?: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, x: number, y: number, private readonly definition: EnemyDefinition) {
@@ -60,7 +60,7 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
   }
 
   receiveHit(hit: Hit): void {
-    this.health -= hit.damage * (this.marked ? this.markedDamageMultiplier : 1);
+    this.health -= hit.damage + (this.marked ? this.markedDamageBonus : 0);
     if (this.health <= 0) {
       this.deactivate();
     }
@@ -70,9 +70,9 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
     return this.health;
   }
 
-  setMarked(value: boolean, damageMultiplier = 2): void {
+  setMarked(value: boolean, damageBonus = 1): void {
     this.marked = value;
-    this.markedDamageMultiplier = damageMultiplier;
+    this.markedDamageBonus = damageBonus;
     if (value) {
       this.showMarker();
     } else {

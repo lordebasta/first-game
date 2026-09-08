@@ -20,11 +20,7 @@ export class PowerPlant extends OutpostStructure {
   } as const;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, PowerPlant.definition);
-  }
-
-  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return POWER_PLANT_UPGRADES;
+    super(scene, x, y, PowerPlant.definition, POWER_PLANT_UPGRADES);
   }
 
   protected override onInstall(): void {

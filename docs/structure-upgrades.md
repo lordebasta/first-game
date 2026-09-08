@@ -11,23 +11,26 @@ applicabili. Se non esistono abbastanza upgrade, la mano contiene meno carte:
 i posti mancanti non vengono riempiti con altre strutture.
 
 Nella vertical slice attuale sono disponibili tre carte upgrade per ciascuna
-struttura: sono escluse quelle marcate `DOPO` nelle tabelle sotto. Con tutti e
-tre gli slot occupati, le carte struttura non compaiono.
-Non esiste il pulsante «Continua senza struttura»: si sceglie una carta e il
-suo bersaglio. Se non esiste alcuna carta applicabile, la pausa termina
-automaticamente. Gli altri upgrade e le sinergie restano proposte future.
+struttura presente nel pool: sono escluse quelle marcate `DOPO` nelle tabelle
+sotto. Lo Scudo e i suoi upgrade sono implementati ma temporaneamente esclusi
+dalle carte. Con tutti e tre gli slot occupati, le carte struttura non
+compaiono.
+Non esiste il pulsante «Continua senza struttura»: si sceglie una carta e, per
+le carte struttura, lo slot in cui piazzarla. Se non esiste alcuna carta
+applicabile, la pausa termina automaticamente. Gli altri upgrade e le sinergie
+restano proposte future.
 
 - Una carta struttura permette di piazzare la struttura in uno slot vuoto o di
   sostituire una struttura di tipo diverso, secondo le normali regole di
   piazzamento.
 - Una carta upgrade compare fra le stesse tre carte solo se il giocatore
   possiede almeno una struttura del tipo indicato.
-- Scegliendo una carta upgrade, il giocatore seleziona la struttura bersaglio
-  se ne possiede piu di una. La struttura conserva posizione e integrita.
-- Un upgrade appartiene a una sola struttura, non a tutte le strutture dello
-  stesso tipo. Due torrette possono quindi avere configurazioni diverse.
+- Scegliendo una carta upgrade, l'effetto viene applicato a tutte le strutture
+  del tipo indicato che il giocatore possiede.
+- L'upgrade resta associato al tipo per tutta la run: anche le strutture dello
+  stesso tipo costruite successivamente lo ricevono automaticamente.
 - Una carta upgrade non puo comparire se non avrebbe effetto o se e gia stata
-  assegnata a quella struttura.
+  acquisita per quel tipo di struttura.
 
 Scegliere una carta upgrade e il costo-opportunita rispetto a piazzare una
 nuova struttura. Non esiste una seconda scelta di tre carte dopo aver scelto
@@ -36,10 +39,10 @@ una struttura duplicata.
 ## Regole comuni delle carte
 
 - Le carte sono permanenti per la durata della run.
-- Ogni carta e unica per la singola struttura: gli effetti non sono
-  cumulabili e una carta gia assegnata non viene piu offerta per quella copia.
-- Se esistono due strutture dello stesso tipo, la stessa carta puo essere
-  assegnata una volta a ciascuna di esse.
+- Ogni carta e unica per tipo di struttura: gli effetti non sono cumulabili e
+  una carta gia acquisita non viene piu offerta durante la run.
+- Tutte le copie presenti e future dello stesso tipo condividono gli stessi
+  upgrade.
 - Ogni carta deve mostrare chiaramente il proprio effetto e valore, per
   esempio `+1 colpo` o `-20% attesa`.
 - Le carte che dipendono da bombardieri, marcature, esplosioni o cariche non
@@ -49,8 +52,9 @@ una struttura duplicata.
 
 ### Muro
 
-Il Muro copre gia tutta la larghezza del proprio slot. Le carte ne aumentano
-la resistenza oppure rendono utile l'ultimo impatto subito.
+Il Muro occupa uno slot ma la sua linea difensiva copre tutta la larghezza del
+campo di gioco. Le carte ne aumentano la resistenza oppure rendono utile
+l'ultimo impatto subito.
 
 | Carta | Effetto |
 | --- | --- |
@@ -72,9 +76,10 @@ forse: Il giocatore spara colpi istantanei laser?
 
 ### Scudo
 
-Lo Scudo copre gia tutta la larghezza del proprio slot e, di base, intercetta
-solo le bombe. Le carte aumentano la sua affidabilita oppure gli permettono di
-gestire anche gli invasori.
+Lo Scudo copre tutta la larghezza del campo di gioco e, di base, intercetta
+solo le bombe. Per ora non compare fra le carte. Quando verra riattivato, le
+sue carte ne aumenteranno l'affidabilita oppure gli permetteranno di gestire
+anche gli invasori.
 
 | Carta | Effetto |
 | --- | --- |
@@ -115,14 +120,15 @@ build diverse: volume, velocita, controllo dell'area o precisione.
 
 ### Radar
 
-Il Radar marca di base il nemico con piu vita e lo rende vulnerabile. Le carte
+Il Radar marca di base il nemico con piu vita e aggiunge 1 al danno di ogni
+colpo ricevuto. Le carte
 estendono la marcatura a piu bersagli o la trasformano in un vantaggio tattico
 e di punteggio.
 
 | Carta | Effetto |
 | --- | --- |
 | Doppia scansione | Marca anche il secondo nemico con piu vita. |
-| Punto debole esposto | I nemici marcati ricevono ulteriore danno. |
+| Punto debole esposto | Il bonus al danno contro i nemici marcati passa da +1 a +2. |
 | Aggancio persistente | La marcatura resta sul bersaglio anche se un altro nemico supera la sua vita. |
 | DOPO: Allarme bombardiere | Tutte le bombe del bombaridere sono marcate |
 | DOPO: Catena di dati | Eliminare un bersaglio marcato marca un nemico vicino. |
@@ -151,7 +157,7 @@ non appartiene a nessuna delle due da sola.
 ### Condizione di apparizione
 
 - Una coppia e idonea quando il giocatore possiede due strutture dei tipi
-  richiesti e **ciascuna** ha almeno tre carte upgrade assegnate.
+  richiesti e per **ciascun tipo** ha acquisito almeno tre carte upgrade.
 - Se esistono piu copie di uno dei due tipi, la carta indica le due strutture
   esatte da collegare. Il giocatore non puo cambiare il collegamento dopo la
   scelta.
@@ -187,8 +193,8 @@ difesa coordinata.
 
 ## Ordine di implementazione consigliato
 
-1. Definire le carte possedute per ogni `OutpostStructure` e le strutture che
-   possono ricevere una carta.
+1. Definire le carte possedute per ogni tipo di `OutpostStructure` e le
+   strutture che possono ricevere una carta.
 2. Estendere la mano iniziale fra le ondate: le carte upgrade entrano fra le
    tre carte struttura solo quando esiste una struttura bersaglio valida.
 3. Implementare prima le carte semplici e numeriche di Torretta, Centrale,
@@ -200,6 +206,7 @@ difesa coordinata.
 6. Introdurre le carte sinergia soltanto dopo che ogni struttura possiede uno
    stato di carte affidabile e puo essere scelta come bersaglio di un effetto.
 
-Ogni upgrade va testato da solo e in combinazione con una seconda struttura
-dello stesso tipo. La priorita e mantenere una schermata leggibile e decisioni
-veloci durante la pausa, come richiesto dalla vertical slice.
+Ogni upgrade va testato da solo, con piu strutture dello stesso tipo gia
+presenti e costruendone una nuova dopo l'acquisizione. La priorita e mantenere
+una schermata leggibile e decisioni veloci durante la pausa, come richiesto
+dalla vertical slice.

@@ -26,11 +26,7 @@ export class DroneFactory extends OutpostStructure {
   private adjacentFireRateMultiplier = 1;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, DroneFactory.definition);
-  }
-
-  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
-    return DRONE_FACTORY_UPGRADES;
+    super(scene, x, y, DroneFactory.definition, DRONE_FACTORY_UPGRADES);
   }
 
   override setAdjacentFireRateMultiplier(multiplier: number): void {

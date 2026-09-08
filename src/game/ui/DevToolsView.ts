@@ -16,6 +16,10 @@ interface DevToolsOptions {
 export class DevToolsView {
   private readonly debugPanel: Phaser.GameObjects.Container;
   private readonly debugText: Phaser.GameObjects.Text;
+  private frameStartedAt = 0;
+  private averageFrameMs = 0;
+  private averageSceneCpuMs = 0;
+  private peakSceneCpuMs = 0;
 
   constructor(private readonly scene: Phaser.Scene, private readonly options: DevToolsOptions) {
     const panelCenterX = GAME_WIDTH + DEV_PANEL_WIDTH / 2;
@@ -46,20 +50,41 @@ export class DevToolsView {
       .setOrigin(0, 0);
     this.debugPanel = scene.add.container(0, 0, [background, this.debugText]);
 
-    scene.events.on(Phaser.Scenes.Events.UPDATE, this.update, this);
+    scene.events.on(Phaser.Scenes.Events.PRE_UPDATE, this.beginFrame, this);
+    scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.endFrame, this);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
   }
 
   destroy(): void {
-    this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.update, this);
+    this.scene.events.off(Phaser.Scenes.Events.PRE_UPDATE, this.beginFrame, this);
+    this.scene.events.off(Phaser.Scenes.Events.POST_UPDATE, this.endFrame, this);
     this.debugPanel.destroy(true);
   }
 
-  private update(): void {
+  private beginFrame(_time: number, delta: number): void {
+    this.frameStartedAt = performance.now();
+    this.averageFrameMs = this.smoothed(this.averageFrameMs, delta);
+  }
+
+  private endFrame(): void {
+    const sceneCpuMs = performance.now() - this.frameStartedAt;
+    this.averageSceneCpuMs = this.smoothed(this.averageSceneCpuMs, sceneCpuMs);
+    this.peakSceneCpuMs = Math.max(sceneCpuMs, this.peakSceneCpuMs * 0.995);
     this.refreshDebugText();
   }
 
   private refreshDebugText(): void {
-    this.debugText.setText([...this.options.getDebugLines()]);
+    this.debugText.setText([
+      ...this.options.getDebugLines(),
+      "",
+      `FPS  ${this.scene.game.loop.actualFps.toFixed(0)}`,
+      `FRAME  ${this.averageFrameMs.toFixed(2)} ms`,
+      `CPU SCENA  ${this.averageSceneCpuMs.toFixed(2)} ms`,
+      `PICCO CPU  ${this.peakSceneCpuMs.toFixed(2)} ms`,
+    ]);
+  }
+
+  private smoothed(current: number, sample: number): number {
+    return current === 0 ? sample : current * 0.9 + sample * 0.1;
   }
 }
