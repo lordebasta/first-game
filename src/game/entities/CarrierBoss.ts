@@ -89,7 +89,7 @@ export class CarrierBoss extends Enemy {
       this.scene.physics.add.existing(scout);
       this.enemyGroup.add(scout);
     }
-    scout.spawn(this.x, this.y + this.displayHeight / 2 + 18, { health: 2 });
+    scout.spawn(this.x, this.y + this.displayHeight / 2 + 18, { health: 3 });
   }
 
   private positionHealthBar(): void {

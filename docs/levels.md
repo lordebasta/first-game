@@ -51,9 +51,10 @@ marcatura con trasparenza, senza sostituire il colore della vita.
 
 - 6-9: Scout e Infantry. Il numero di Infantry e triplicato rispetto alle
   formazioni iniziali, la velocita sale da 1,35x a 2x e compaiono gradualmente
-  Infantry da 4 a 6 integrita. Gli Scout entrano uno alla volta nell'arco di 5
-  secondi. Nell'ondata 9, le due colonne centrali hanno 6 integrita e obbligano
-  a scegliere se aprire subito il centro oppure ripulire prima i lati.
+  Infantry da 4 a 6 integrita. Due file di Scout entrano una alla volta
+  nell'arco di 10 secondi. Nell'ondata 9, le due colonne centrali hanno 6
+  integrita e obbligano a scegliere se aprire subito il centro oppure ripulire
+  prima i lati.
 - 10: nave madre da 60 integrita. Non scende: pattuglia orizzontalmente la parte
   alta dello schermo, protetta da due righe di 6 Infantry da 4 integrita, e
   rilascia uno Scout da 2 integrita ogni 1,8 secondi, dopo un primo rilascio

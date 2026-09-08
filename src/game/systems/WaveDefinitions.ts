@@ -19,9 +19,9 @@ export interface WaveDefinition {
 const scout = (): WaveEnemy => ({ kind: "scout" });
 const toughScout = (): WaveEnemy => ({ kind: "scout", health: 2 });
 const infantry = (health: EnemyHealth = 4): WaveEnemy => ({ kind: "infantry", health });
-const staggerOverFiveSeconds = (enemies: WaveEnemy[]): WaveEnemy[] => enemies.map((enemy, index) => ({
+const staggerOverTenSeconds = (enemies: WaveEnemy[]): WaveEnemy[] => enemies.map((enemy, index) => ({
   ...enemy,
-  spawnDelayMs: enemies.length <= 1 ? 0 : index * 5_000 / (enemies.length - 1),
+  spawnDelayMs: enemies.length <= 1 ? 0 : index * 10_000 / (enemies.length - 1),
 }));
 
 export const WAVES: readonly WaveDefinition[] = [
@@ -41,37 +41,49 @@ export const WAVES: readonly WaveDefinition[] = [
   },
   {
     columns: 6,
-    rows: 4,
+    rows: 5,
     speedMultiplier: 1.35,
     enemies: [
-      ...staggerOverFiveSeconds([scout(), scout(), toughScout(), toughScout(), scout(), scout()]),
+      ...staggerOverTenSeconds([
+        scout(), scout(), toughScout(), toughScout(), scout(), scout(),
+        scout(), toughScout(), scout(), scout(), toughScout(), scout(),
+      ]),
       ...Array.from({ length: 18 }, () => infantry()),
     ],
   },
   {
     columns: 6,
-    rows: 4,
+    rows: 5,
     speedMultiplier: 1.55,
     enemies: [
-      ...staggerOverFiveSeconds([toughScout(), scout(), toughScout(), scout(), toughScout(), scout()]),
+      ...staggerOverTenSeconds([
+        toughScout(), scout(), toughScout(), scout(), toughScout(), scout(),
+        scout(), toughScout(), scout(), toughScout(), scout(), toughScout(),
+      ]),
       ...Array.from({ length: 18 }, (_, index) => index % 6 === 1 || index % 6 === 4 ? infantry(5) : infantry()),
     ],
   },
   {
     columns: 5,
-    rows: 7,
+    rows: 8,
     speedMultiplier: 1.75,
     enemies: [
-      ...staggerOverFiveSeconds([scout(), toughScout(), scout(), toughScout(), scout()]),
+      ...staggerOverTenSeconds([
+        scout(), toughScout(), scout(), toughScout(), scout(),
+        toughScout(), scout(), toughScout(), scout(), toughScout(),
+      ]),
       ...Array.from({ length: 30 }, (_, index) => [1, 2, 3, 7].includes(index % 10) ? infantry(5) : infantry()),
     ],
   },
   {
     columns: 6,
-    rows: 7,
+    rows: 8,
     speedMultiplier: 2,
     enemies: [
-      ...staggerOverFiveSeconds([toughScout(), scout(), toughScout(), scout(), toughScout(), scout()]),
+      ...staggerOverTenSeconds([
+        toughScout(), scout(), toughScout(), scout(), toughScout(), scout(),
+        scout(), toughScout(), scout(), toughScout(), scout(), toughScout(),
+      ]),
       ...Array.from({ length: 36 }, (_, index) => {
         const column = index % 6;
         if (column === 2 || column === 3) return infantry(6);

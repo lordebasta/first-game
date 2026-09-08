@@ -10,7 +10,8 @@ import { Wall, WALL_UPGRADES } from "./Wall";
 export { type StructureConstructor, type StructureDefinition } from "./OutpostStructure";
 
 export const STRUCTURE_CLASSES: readonly StructureConstructor[] = [
-  Wall,
+  // Temporarily excluded from the normal structure-card pool.
+  // Wall,
   PowerPlant,
   DroneFactory,
   Turret,

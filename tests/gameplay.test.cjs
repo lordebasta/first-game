@@ -95,6 +95,7 @@ test('the vertical slice authors ten waves and ends with the escorted carrier bo
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 12);
   assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
   assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.speedMultiplier), [1.35, 1.55, 1.75, 2]);
+  assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'scout').length), [12, 12, 10, 12]);
   assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'infantry').length), [18, 18, 30, 36]);
   assert.equal(WAVES[8].enemies.filter((enemy) => enemy.kind === 'infantry' && enemy.health === 6).length, 12);
   assert(WAVES.slice(5, 10).flatMap((wave) => wave.enemies)
@@ -103,7 +104,7 @@ test('the vertical slice authors ten waves and ends with the escorted carrier bo
   for (const wave of WAVES.slice(5, 9)) {
     const scouts = wave.enemies.filter((enemy) => enemy.kind === 'scout');
     assert.equal(scouts[0].spawnDelayMs, 0);
-    assert.equal(scouts.at(-1).spawnDelayMs, 5_000);
+    assert.equal(scouts.at(-1).spawnDelayMs, 10_000);
   }
 });
 
