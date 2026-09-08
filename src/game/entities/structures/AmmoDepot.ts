@@ -1,7 +1,13 @@
 import { COLORS } from "../../constants";
 import { RUN_DATA } from "../../RunData";
 import { PlayerWeapon } from "../../systems/PlayerWeapon";
-import { OutpostStructure } from "./OutpostStructure";
+import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
+
+export const AMMO_DEPOT_UPGRADES = [
+  { id: "rapid-supply", name: "RIFORNIMENTO RAPIDO", description: "Spatter ogni 4 attacchi anziche 5" },
+  { id: "wide-salvo", name: "SALVA LARGA", description: "Lo spatter spara 5 colpi anziche 3" },
+  { id: "heavy-center", name: "COLPO CENTRALE PESANTE", description: "+1 danno al colpo centrale" },
+] as const satisfies readonly StructureUpgrade[];
 
 export class AmmoDepot extends OutpostStructure {
   static readonly definition = {
@@ -15,12 +21,28 @@ export class AmmoDepot extends OutpostStructure {
     super(scene, x, y, AmmoDepot.definition);
   }
 
+  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
+    return AMMO_DEPOT_UPGRADES;
+  }
+
   protected override onInstall(): void {
-    this.weapon.setAreaShotEvery(5);
+    this.refreshWeaponConfiguration();
   }
 
   protected override onUninstall(): void {
-    this.weapon.setAreaShotEvery(undefined);
+    this.weapon.setAreaShotSource(this);
+  }
+
+  protected override onUpgradeApplied(_id: string): void {
+    this.refreshWeaponConfiguration();
+  }
+
+  private refreshWeaponConfiguration(): void {
+    this.weapon.setAreaShotSource(this, {
+      every: this.hasUpgrade("rapid-supply") ? 4 : 5,
+      count: this.hasUpgrade("wide-salvo") ? 5 : 3,
+      centerDamage: this.hasUpgrade("heavy-center") ? 2 : 1,
+    });
   }
 
   private get weapon(): PlayerWeapon {

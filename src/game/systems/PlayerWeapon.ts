@@ -9,8 +9,9 @@ export class PlayerWeapon {
 
   private nextShotAt = 0;
   private cooldownMultiplier = 1;
-  private playerShotCount = 0;
-  private areaShotEvery?: number;
+  private projectileSpeedMultiplier = 1;
+  private shotCount = 0;
+  private readonly areaShotSources = new Map<object, { every: number; count: number; centerDamage: number }>();
 
   constructor(scene: Phaser.Scene) {
     this.projectiles = scene.physics.add.group({ classType: Projectile });
@@ -21,11 +22,12 @@ export class PlayerWeapon {
       return false;
     }
 
-    this.playerShotCount += 1;
-    if (this.areaShotEvery && this.playerShotCount % this.areaShotEvery === 0) {
-      this.fireAreaShot(time, origin);
+    this.shotCount += 1;
+    const areaShot = this.getAreaShotConfiguration();
+    if (areaShot && this.shotCount % areaShot.every === 0) {
+      this.fireAreaShot(time, origin, areaShot);
     } else {
-      this.fireFrom(time, origin);
+      this.fireFrom(time, origin, 0, { speedMultiplier: this.projectileSpeedMultiplier });
     }
     this.nextShotAt = time + SHOT_COOLDOWN_MS * this.cooldownMultiplier;
     return true;
@@ -40,8 +42,16 @@ export class PlayerWeapon {
     this.cooldownMultiplier += amount;
   }
 
-  setAreaShotEvery(value: number | undefined): void {
-    this.areaShotEvery = value;
+  changeProjectileSpeedMultiplier(amount: number): void {
+    this.projectileSpeedMultiplier += amount;
+  }
+
+  setAreaShotSource(source: object, configuration?: { every: number; count: number; centerDamage: number }): void {
+    if (configuration) {
+      this.areaShotSources.set(source, configuration);
+    } else {
+      this.areaShotSources.delete(source);
+    }
   }
 
   update(): void {
@@ -53,9 +63,28 @@ export class PlayerWeapon {
     }
   }
 
-  private fireAreaShot(time: number, origin: Phaser.Math.Vector2): void {
-    this.fireFrom(time, origin, -180);
-    this.fireFrom(time, origin);
-    this.fireFrom(time, origin, 180);
+  private getAreaShotConfiguration(): { every: number; count: number; centerDamage: number } | undefined {
+    const configurations = [...this.areaShotSources.values()];
+    if (configurations.length === 0) return undefined;
+    return {
+      every: Math.min(...configurations.map((configuration) => configuration.every)),
+      count: Math.max(...configurations.map((configuration) => configuration.count)),
+      centerDamage: Math.max(...configurations.map((configuration) => configuration.centerDamage)),
+    };
+  }
+
+  private fireAreaShot(
+    time: number,
+    origin: Phaser.Math.Vector2,
+    configuration: { count: number; centerDamage: number },
+  ): void {
+    const middle = (configuration.count - 1) / 2;
+    for (let index = 0; index < configuration.count; index += 1) {
+      const centeredIndex = index - middle;
+      this.fireFrom(time, origin, centeredIndex * 90, {
+        damage: centeredIndex === 0 ? configuration.centerDamage : 1,
+        speedMultiplier: this.projectileSpeedMultiplier,
+      });
+    }
   }
 }

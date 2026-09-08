@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { STRUCTURE_CLASSES } from "../entities/structures";
-import { Turret, TURRET_UPGRADES } from "../entities/structures/Turret";
 import type { StructureSlots } from "./StructureSlots";
 
 export interface OutpostCard {
@@ -33,14 +32,28 @@ export class OutpostCardSystem {
         });
       }
     }
-    for (const upgrade of TURRET_UPGRADES) {
-      const targets = structures.flatMap((structure, slot) =>
-        structure instanceof Turret && !structure.hasUpgrade(upgrade.id) ? [{
-          label: `TORRETTA ${slot + 1}`,
-          apply: () => structure.applyUpgrade(upgrade.id),
-        }] : []);
-      if (targets.length > 0) {
-        upgradeCards.push({ kind: "upgrade", name: upgrade.name, description: `Torretta: ${upgrade.description}`, targets });
+    const upgradeKinds = new Map<string, NonNullable<typeof structures[number]>>();
+    for (const structure of structures) {
+      if (structure && typeof structure.getUpgradeDefinitions === "function") {
+        upgradeKinds.set(structure.definition.kind, structure);
+      }
+    }
+    for (const sample of upgradeKinds.values()) {
+      for (const upgrade of sample.getUpgradeDefinitions()) {
+        const targets = structures.flatMap((structure, slot) =>
+          structure?.definition.kind === sample.definition.kind && !structure.hasUpgrade(upgrade.id) ? [{
+            label: `${structure.definition.name} ${slot + 1}`,
+            apply: () => structure.applyUpgrade(upgrade.id),
+          }] : []);
+        if (targets.length > 0) {
+          const structureName = sample.definition.name.charAt(0) + sample.definition.name.slice(1).toLowerCase();
+          upgradeCards.push({
+            kind: "upgrade",
+            name: upgrade.name,
+            description: `${structureName}: ${upgrade.description}`,
+            targets,
+          });
+        }
       }
     }
     return [

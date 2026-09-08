@@ -1,7 +1,14 @@
 import { COLORS } from "../../constants";
 import { RUN_DATA } from "../../RunData";
 import { Enemy } from "../Enemy";
-import { OutpostStructure } from "./OutpostStructure";
+import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
+
+export const RADAR_UPGRADES = [
+  { id: "double-scan", name: "DOPPIA SCANSIONE", description: "Marca anche il secondo nemico piu resistente" },
+  { id: "weak-point", name: "PUNTO DEBOLE ESPOSTO", description: "I bersagli marcati ricevono +1x danno" },
+  { id: "persistent-lock", name: "AGGANCIO PERSISTENTE", description: "Mantiene i bersagli finche restano attivi" },
+] as const satisfies readonly StructureUpgrade[];
+// Upgrade rimandati: Allarme bombardiere e Catena di dati.
 
 export class Radar extends OutpostStructure {
   static readonly definition = {
@@ -11,32 +18,46 @@ export class Radar extends OutpostStructure {
     color: COLORS.player,
   } as const;
 
+  private markedEnemies: Enemy[] = [];
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, Radar.definition);
   }
 
-  private markedEnemy?: Enemy;
+  override getUpgradeDefinitions(): readonly StructureUpgrade[] {
+    return RADAR_UPGRADES;
+  }
 
   protected override onUpdate(_time: number): void {
     const enemies = (this.scene.data.get(RUN_DATA.enemies) as Phaser.Physics.Arcade.Group)
       .getChildren()
       .filter((object) => object.active) as Enemy[];
-    const target = enemies.reduce<Enemy | undefined>(
-      (strongest, enemy) => (!strongest || enemy.getHealth() > strongest.getHealth() ? enemy : strongest),
-      undefined,
-    );
-
-    if (target === this.markedEnemy) {
-      return;
+    const count = this.hasUpgrade("double-scan") ? 2 : 1;
+    const retained = this.hasUpgrade("persistent-lock")
+      ? this.markedEnemies.filter((enemy) => enemy.active).slice(0, count)
+      : [];
+    const targets = [...retained];
+    const strongest = [...enemies].sort((a, b) => b.getHealth() - a.getHealth());
+    for (const enemy of strongest) {
+      if (targets.length >= count) break;
+      if (!targets.includes(enemy)) targets.push(enemy);
     }
+    if (targets.length === this.markedEnemies.length && targets.every((target, index) => target === this.markedEnemies[index])) return;
 
-    this.markedEnemy?.setMarked(false);
-    target?.setMarked(true);
-    this.markedEnemy = target;
+    this.markedEnemies.filter((enemy) => !targets.includes(enemy)).forEach((enemy) => enemy.setMarked(false));
+    const damageMultiplier = this.hasUpgrade("weak-point") ? 3 : 2;
+    targets.forEach((enemy) => enemy.setMarked(true, damageMultiplier));
+    this.markedEnemies = targets;
   }
 
   protected override onUninstall(): void {
-    this.markedEnemy?.setMarked(false);
-    this.markedEnemy = undefined;
+    this.markedEnemies.forEach((enemy) => enemy.setMarked(false));
+    this.markedEnemies = [];
+  }
+
+  protected override onUpgradeApplied(_id: string): void {
+    // Force an immediate refresh (including a new vulnerability multiplier).
+    this.markedEnemies.forEach((enemy) => enemy.setMarked(false));
+    this.markedEnemies = [];
   }
 }

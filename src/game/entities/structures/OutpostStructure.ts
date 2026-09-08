@@ -15,8 +15,16 @@ export interface StructureConstructor {
   new (scene: Phaser.Scene, x: number, y: number): OutpostStructure;
 }
 
+export interface StructureUpgrade {
+  id: string;
+  name: string;
+  description: string;
+}
+
 /** Base visual and lifecycle for a structure. Structures intentionally have no physics body. */
 export abstract class OutpostStructure extends Phaser.GameObjects.Container {
+  private readonly upgrades = new Set<string>();
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -54,6 +62,25 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     this.onRepair();
   }
 
+  getUpgradeDefinitions(): readonly StructureUpgrade[] {
+    return [];
+  }
+
+  hasUpgrade(id: string): boolean {
+    return this.upgrades.has(id);
+  }
+
+  applyUpgrade(id: string): void {
+    if (this.hasUpgrade(id) || !this.getUpgradeDefinitions().some((upgrade) => upgrade.id === id)) {
+      return;
+    }
+    this.upgrades.add(id);
+    this.onUpgradeApplied(id);
+  }
+
+  /** Hook used by adjacent Power Plants; only automatic structures override it. */
+  setAdjacentFireRateMultiplier(_multiplier: number): void {}
+
   protected onInstall(): void {}
 
   protected onUpdate(_time: number): void {}
@@ -61,4 +88,6 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
   protected onUninstall(): void {}
 
   protected onRepair(): void {}
+
+  protected onUpgradeApplied(_id: string): void {}
 }

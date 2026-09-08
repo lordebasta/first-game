@@ -65,6 +65,26 @@ const { Projectile } = load('src/game/entities/Projectile.ts');
 const { CombatSystem } = load('src/game/systems/CombatSystem.ts');
 const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
+const { WALL_UPGRADES } = load('src/game/entities/structures/Wall.ts');
+const { POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
+const { SHIELD_UPGRADES } = load('src/game/entities/structures/Shield.ts');
+const { DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
+const { RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
+const { AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
+
+test('every structure exposes exactly three upgrades in the current slice', () => {
+  for (const upgrades of [
+    WALL_UPGRADES,
+    POWER_PLANT_UPGRADES,
+    SHIELD_UPGRADES,
+    DRONE_FACTORY_UPGRADES,
+    TURRET_UPGRADES,
+    RADAR_UPGRADES,
+    AMMO_DEPOT_UPGRADES,
+  ]) {
+    assert.equal(upgrades.length, 3);
+  }
+});
 
 test('uniform spawning preserves type defaults, health colors and reuse resets', () => {
   for (const [Type, health] of [[Scout, 1], [ScoutVeteran, 4], [Infantry, 1]]) {

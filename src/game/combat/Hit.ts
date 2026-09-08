@@ -1,6 +1,5 @@
-import type { Projectile } from "../entities/Projectile";
-
 export interface Hit {
   damage: number;
-  source: Projectile;
+  /** Projectile, beam emitter or another combat object responsible for the hit. */
+  source: object;
 }

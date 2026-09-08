@@ -10,8 +10,9 @@ Con N slot liberi, N carte sono strutture e le altre 3-N sono upgrade
 applicabili. Se non esistono abbastanza upgrade, la mano contiene meno carte:
 i posti mancanti non vengono riempiti con altre strutture.
 
-Nella vertical slice attuale sono disponibili le sei carte Torretta elencate
-sotto. Con tutti e tre gli slot occupati, le carte struttura non compaiono.
+Nella vertical slice attuale sono disponibili tre carte upgrade per ciascuna
+struttura: sono escluse quelle marcate `DOPO` nelle tabelle sotto. Con tutti e
+tre gli slot occupati, le carte struttura non compaiono.
 Non esiste il pulsante «Continua senza struttura»: si sceglie una carta e il
 suo bersaglio. Se non esiste alcuna carta applicabile, la pausa termina
 automaticamente. Gli altri upgrade e le sinergie restano proposte future.
@@ -55,7 +56,6 @@ la resistenza oppure rendono utile l'ultimo impatto subito.
 | --- | --- |
 | Piastre rinforzate | Assorbe un invasore aggiuntivo prima di essere distrutto. |
 | Rottami esplosivi | Quando il Muro viene distrutto, elimina gli invasori vicini. |
-| Ultimo baluardo | L'ultimo colpo assorbito rallenta brevemente gli invasori. |
 | Riparazioni rapide | Durante la pausa recupera un punto integrita aggiuntivo, se danneggiato. |
 
 ### Centrale
@@ -66,9 +66,9 @@ potenza di fuoco senza rendere obbligatoria una build da fuoco rapido.
 | Carta | Effetto |
 | --- | --- |
 | Reattore sovralimentato | Aumenta ulteriormente la velocita di movimento. |
-| Condensatori rapidi | Riduce ulteriormente l'attesa fra i colpi del player. |
 | Celle di riserva | Aumenta la velocita dei proiettili del player. |
 | Rete energetica | Le strutture automatiche negli slot adiacenti sparano piu spesso. |
+forse: Il giocatore spara colpi istantanei laser? 
 
 ### Scudo
 
@@ -94,10 +94,10 @@ premiano copertura, danno e scelta consapevole della priorita.
 | --- | --- |
 | Linea di assemblaggio | Schiera un drone aggiuntivo. |
 | Laser istantaneo | Il drone sostituisce il colpo normale con un laser istantaneo. |
-| Laser focalizzato | Il laser infligge danno aggiuntivo. |
-| Raffreddamento efficiente | Riduce l'intervallo fra i laser. |
+| DOPO: Laser focalizzato | Il laser infligge danno aggiuntivo. |
+| DOPO: Raffreddamento efficiente | Riduce l'intervallo fra i laser. |
 | Puntamento prioritario | Compare un comando per scegliere la priorita: nemico piu vicino alla base o nemico con piu vita. |
-| Laser perforante | Il laser attraversa il bersaglio e colpisce un altro invasore allineato. |
+| DOPO: Laser perforante | Il laser attraversa il bersaglio e colpisce un altro invasore allineato. |
 
 ### Torretta
 
@@ -106,12 +106,12 @@ build diverse: volume, velocita, controllo dell'area o precisione.
 
 | Carta | Effetto |
 | --- | --- |
-| Canne gemelle | Ogni attivazione spara un proiettile aggiuntivo con piccolo scarto orizzontale. |
-| Meccanismo rapido | Riduce l'intervallo fra le raffiche. |
+| DOPO: Canne gemelle | Ogni attivazione spara un proiettile aggiuntivo con piccolo scarto orizzontale. |
+| DOPO: Meccanismo rapido | Riduce l'intervallo fra le raffiche. |
 | Carica ad alto impatto | Aumenta il danno del proiettile. |
 | Munizioni esplosive | I colpi esplodono all'impatto e danneggiano i nemici vicini. |
 | Colpi perforanti | I colpi attraversano un numero limitato di invasori. |
-| Stabilizzatore | I proiettili hanno meno dispersione e viaggiano piu rapidamente. |
+| DOPO: Stabilizzatore | I proiettili hanno meno dispersione e viaggiano piu rapidamente. |
 
 ### Radar
 
@@ -121,12 +121,11 @@ e di punteggio.
 
 | Carta | Effetto |
 | --- | --- |
-| Taglia aumentata | I nemici marcati valgono piu punti. |
 | Doppia scansione | Marca anche il secondo nemico con piu vita. |
 | Punto debole esposto | I nemici marcati ricevono ulteriore danno. |
 | Aggancio persistente | La marcatura resta sul bersaglio anche se un altro nemico supera la sua vita. |
-| Allarme bombardiere | Le bombe del bombardiere marcato si muovono piu lentamente. |
-| Catena di dati | Eliminare un bersaglio marcato marca un nemico vicino. |
+| DOPO: Allarme bombardiere | Tutte le bombe del bombaridere sono marcate |
+| DOPO: Catena di dati | Eliminare un bersaglio marcato marca un nemico vicino. |
 
 ### Deposito munizioni
 
@@ -138,11 +137,11 @@ individualmente. Le carte modificano frequenza, forma e potenza dello spatter.
 | --- | --- |
 | Rifornimento rapido | Riduce il numero di attacchi richiesti per attivare lo spatter. |
 | Salva larga | Lo spatter spara cinque colpi anziche tre. |
-| Cono stretto | Lo spatter ha meno dispersione ed e piu efficace contro un bersaglio distante. |
-| Cono ampio | Lo spatter ha piu dispersione e copre una porzione piu larga della formazione. |
-| Munizioni perforanti | Ogni colpo dello spatter attraversa un invasore prima di sparire. |
+| DOOPO: Cono stretto | Lo spatter ha meno dispersione ed e piu efficace contro un bersaglio distante. |
+| DOPO: Cono ampio | Lo spatter ha piu dispersione e copre una porzione piu larga della formazione. |
+| DOPO: Munizioni perforanti | Ogni colpo dello spatter attraversa un invasore prima di sparire. |
 | Colpo centrale pesante | Il proiettile centrale dello spatter infligge danno aggiuntivo. |
-| Riserva d'emergenza | Distruggere una bomba rende il prossimo attacco uno spatter. |
+| DOPO: Riserva d'emergenza | Distruggere una bomba rende il prossimo attacco uno spatter. |
 
 ## Carte sinergia
 
