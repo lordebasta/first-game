@@ -288,8 +288,8 @@ function cardSystem(structures) {
   };
   return { system: new OutpostCardSystem(slots), slots };
 }
-function cards(structures, includeUpgrades = true) {
-  return cardSystem(structures).system.draw(includeUpgrades);
+function cards(structures) {
+  return cardSystem(structures).system.draw();
 }
 function structureCards(structures) {
   return new OutpostCardSystem({ getStructures: () => structures, labelFor: (i) => `SLOT ${i}`, place() {} }).drawStructures();
@@ -305,23 +305,19 @@ test('card quotas follow free slots and never replace missing upgrades with stru
     assert.equal(hand.filter((card) => card.description.startsWith('Torretta:')).length, 3 - free);
   }
   assert.equal(cards([undefined, undefined, structureWithoutUpgrades('wall')]).length, 2);
-  assert.equal(cards([turret(), turret(), turret()], false).length, 0);
-  const structureOnlyHand = cards([turret(), turret(), undefined], false);
-  assert.equal(structureOnlyHand.length, 3);
-  assert(structureOnlyHand.every((card) => card.kind === 'structure'));
 });
 
 test('upgrade cards apply once to every structure of their type', () => {
   const first = turret(), second = turret();
   const { system, slots } = cardSystem([first, second, structureWithoutUpgrades('wall')]);
-  const hand = system.draw(true);
+  const hand = system.draw();
   assert.equal(hand[0].kind, 'upgrade');
   hand[0].apply();
   assert(first.hasUpgrade(TURRET_UPGRADES[0].id));
   assert(second.hasUpgrade(TURRET_UPGRADES[0].id));
-  assert.equal(system.draw(true).some((card) => card.name === TURRET_UPGRADES[0].name), false);
+  assert.equal(system.draw().some((card) => card.name === TURRET_UPGRADES[0].name), false);
   for (const upgrade of TURRET_UPGRADES) slots.applyUpgrade('turret', upgrade.id);
-  assert.equal(system.draw(true).length, 0);
+  assert.equal(system.draw().length, 0);
 });
 
 test('structure type upgrades are inherited by structures placed later', () => {

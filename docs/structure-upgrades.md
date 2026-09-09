@@ -5,7 +5,8 @@ Outpost*. I valori numerici finali vanno decisi con i playtest.
 
 ## Carte struttura e carte upgrade
 
-Durante ogni pausa fra le ondate, il giocatore riceve fino a tre carte casuali.
+Alla fine di ogni ondata pari, il giocatore riceve fino a tre carte casuali.
+Alla fine delle ondate dispari non viene proposta alcuna carta.
 Con N slot liberi, N carte sono strutture e le altre 3-N sono upgrade
 applicabili. Se non esistono abbastanza upgrade, la mano contiene meno carte:
 i posti mancanti non vengono riempiti con altre strutture.

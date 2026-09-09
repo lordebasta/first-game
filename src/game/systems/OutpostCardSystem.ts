@@ -23,17 +23,15 @@ export type OutpostCard = StructureCard | UpgradeCard;
 export class OutpostCardSystem {
   constructor(private readonly slots: StructureSlots) {}
 
-  draw(includeUpgrades: boolean): OutpostCard[] {
+  draw(): OutpostCard[] {
     const structures = this.slots.getStructures();
     const upgradeCards: OutpostCard[] = [];
     const freeSlots = structures.filter((structure) => !structure).length;
     const structureCards = freeSlots > 0 ? this.buildStructureCards() : [];
     const upgradeKinds = new Map<string, NonNullable<typeof structures[number]>>();
-    if (includeUpgrades) {
-      for (const structure of structures) {
-        if (structure && structure.definition.availableInCards !== false) {
-          upgradeKinds.set(structure.definition.kind, structure);
-        }
+    for (const structure of structures) {
+      if (structure && structure.definition.availableInCards !== false) {
+        upgradeKinds.set(structure.definition.kind, structure);
       }
     }
     for (const sample of upgradeKinds.values()) {
@@ -49,9 +47,8 @@ export class OutpostCardSystem {
         }
       }
     }
-    const structureCardCount = includeUpgrades ? freeSlots : 3;
     return [
-      ...Phaser.Utils.Array.Shuffle(structureCards).slice(0, structureCardCount),
+      ...Phaser.Utils.Array.Shuffle(structureCards).slice(0, freeSlots),
       ...Phaser.Utils.Array.Shuffle(upgradeCards).slice(0, 3 - freeSlots),
     ];
   }

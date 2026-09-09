@@ -8,8 +8,9 @@ La vertical slice corrente si conclude con una schermata di vittoria dopo
 l'ondata 10; le ondate 11-30 restano la struttura prevista per la campagna completa.
 
 Ogni ondata e una singola formazione. Fra un'ondata e la successiva c'e una
-pausa breve: le strutture danneggiate recuperano un punto integrita e il
-giocatore puo scegliere un potenziamento ogni due ondate. Dopo le ondate 5, 10, 15, 20 e 25 la
+pausa breve durante la quale le strutture danneggiate recuperano un punto
+integrita. Dopo le ondate pari il giocatore sceglie le carte per l'avamposto;
+dopo le ondate dispari non viene proposta alcuna carta. Dopo le ondate 5, 10, 15, 20 e 25 la
 pausa puo essere piu lunga per evidenziare il mini-boss appena sconfitto.
 
 ## Nemici iniziali

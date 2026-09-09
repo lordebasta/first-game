@@ -137,12 +137,12 @@ export class GameScene extends Phaser.Scene {
 
   private handleWaveCleared(wave: number): void {
     this.waveText.setText(`ONDATA  ${(wave + 1).toString().padStart(2, "0")} / ${this.lastLevel}`);
-    this.openStructureChoice(wave);
+    this.structureSlots.repairAll();
+    if (wave % 2 === 0) this.openStructureChoice();
   }
 
-  private openStructureChoice(completedWave: number): void {
-    this.structureSlots.repairAll();
-    this.showStructureChoice(this.outpostCards.draw(completedWave % 2 === 0));
+  private openStructureChoice(): void {
+    this.showStructureChoice(this.outpostCards.draw());
   }
 
   private openDevStructureChoice(): void {

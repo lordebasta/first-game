@@ -39,7 +39,7 @@ La formazione torna e scende piu velocemente
 Il nucleo cade: sconfitta; l'ondata 30 cade: vittoria
 ```
 
-Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero. I potenziamenti delle strutture entrano fra le scelte ogni due ondate. Una struttura gia presente non puo essere sostituita. Non c'e un negozio o una fase di costruzione lenta.
+Fra due ondate c'e una pausa breve e le strutture danneggiate ma non distrutte recuperano un punto integrita. Ogni due ondate, dopo le ondate 2, 4, 6 e cosi via, il giocatore sceglie fino a tre carte. Il numero di carte struttura corrisponde agli slot liberi e le restanti sono potenziamenti applicabili alle strutture presenti. Dopo le ondate dispari non viene proposta alcuna carta. Una struttura gia presente non puo essere sostituita. Non c'e un negozio o una fase di costruzione lenta.
 
 ## Campo di gioco
 
