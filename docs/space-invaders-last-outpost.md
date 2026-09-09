@@ -32,14 +32,14 @@ Gli invasori scendono verso l'avamposto
         ↓
 Elimina la formazione
         ↓
-Fra le ondate: pausa, riparazione e scelta di un potenziamento
+Fra le ondate: pausa e riparazione; potenziamenti ogni due ondate
         ↓
 La formazione torna e scende piu velocemente
         ↓
 Il nucleo cade: sconfitta; l'ondata 30 cade: vittoria
 ```
 
-Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero. Una struttura gia presente non puo essere sostituita. Non c'e un negozio o una fase di costruzione lenta.
+Fra due ondate c'e una pausa breve. Le strutture danneggiate ma non distrutte recuperano un punto integrita. Il giocatore puo sempre riempire uno slot vuoto con un muro base oppure scegliere una fra tre strutture casuali e piazzarla in uno slot libero. I potenziamenti delle strutture entrano fra le scelte ogni due ondate. Una struttura gia presente non puo essere sostituita. Non c'e un negozio o una fase di costruzione lenta.
 
 ## Campo di gioco
 
@@ -65,11 +65,11 @@ Il nucleo ha **una sola vita**. Se un invasore supera uno slot vuoto o una strut
 L'avamposto ha una fila di **quattro slot**. Ogni struttura ha due punti integrita: il primo invasore che la raggiunge la danneggia e viene distrutto; il secondo la distrugge e lascia lo slot vuoto. Durante una pausa, una struttura danneggiata recupera il danno; una struttura distrutta non torna automaticamente.
 
 - **Muro:** struttura base sempre disponibile; occupa uno slot, estende una linea difensiva per tutta la larghezza del campo e assorbe due invasori senza altri effetti.
-- **Centrale** *(comune)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
+- **Centrale** *(comune, unica)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
 - **Fabbrica droni** *(rara)*: crea periodicamente un piccolo drone che si muove e spara all'invasore piu in basso.
 - **Torretta** *(comune)*: spara verso l'alto, davanti al proprio slot.
 - **Radar:** marca il nemico piu resistente e aggiunge +1 al danno che riceve.
-- **Deposito munizioni:** ogni quinto attacco del giocatore diventa ad area.
+- **Deposito munizioni** *(unico)*: ogni quinto attacco del giocatore diventa ad area.
 
 La scelta e sempre locale e rapida: riempire uno slot con un muro o aggiungere una struttura utile in uno slot ancora libero.
 

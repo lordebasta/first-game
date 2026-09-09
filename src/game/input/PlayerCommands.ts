@@ -28,10 +28,11 @@ export class PlayerCommandSource {
     const movingRight = this.cursors.right.isDown || this.keyD.isDown;
     const rawAxis = Number(movingRight) - Number(movingLeft);
     const pointer = this.scene.input.activePointer;
+    const pointerOverUi = this.scene.input.hitTestPointer(pointer).length > 0;
 
     return {
       moveAxis: rawAxis as PlayerCommand["moveAxis"],
-      fire: this.fireKey.isDown || (pointer.isDown && pointer.leftButtonDown()),
+      fire: this.fireKey.isDown || (pointer.isDown && pointer.leftButtonDown() && !pointerOverUi),
     };
   }
 }

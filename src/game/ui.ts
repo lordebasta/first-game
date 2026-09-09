@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { COLORS } from "./constants";
+import { playUiClickSound } from "./audio/SoundEffects";
 
 export interface ButtonStyle {
   fill: number;
@@ -39,7 +40,10 @@ export function createButton(
   background.setInteractive({ useHandCursor: true });
   background.on("pointerover", () => background.setFillStyle(style.hover));
   background.on("pointerout", () => background.setFillStyle(style.fill));
-  background.on("pointerdown", () => background.setFillStyle(style.pressed));
+  background.on("pointerdown", () => {
+    background.setFillStyle(style.pressed);
+    playUiClickSound(scene);
+  });
   background.on("pointerup", () => {
     background.setFillStyle(style.hover);
     onClick();
@@ -55,8 +59,9 @@ export function createSlider(
   label: string,
   initialValue: number,
   onChange: (value: number) => void,
+  width = 260,
+  onInteract?: () => void,
 ): Phaser.GameObjects.Container {
-  const width = 260;
   const value = Phaser.Math.Clamp(initialValue, 0, 1);
   const labelText = scene.add
     .text(0, -31, label, { color: COLORS.text, fontFamily: "monospace", fontSize: "16px" })
@@ -79,7 +84,10 @@ export function createSlider(
     onChange(nextValue);
   };
   track.setInteractive(new Phaser.Geom.Rectangle(0, -12, width, 36), Phaser.Geom.Rectangle.Contains, true);
-  track.on("pointerdown", (_pointer: Phaser.Input.Pointer, localX: number) => updateValue(localX));
+  track.on("pointerdown", (_pointer: Phaser.Input.Pointer, localX: number) => {
+    updateValue(localX);
+    onInteract?.();
+  });
   track.on("pointermove", (pointer: Phaser.Input.Pointer, localX: number) => {
     if (pointer.isDown) updateValue(localX);
   });

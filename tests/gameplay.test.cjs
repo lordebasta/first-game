@@ -69,10 +69,10 @@ const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
 const { WALL_UPGRADES } = load('src/game/entities/structures/Wall.ts');
-const { POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
+const { PowerPlant, POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
 const { DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
-const { AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
+const { AmmoDepot, AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
 const { WAVES, LAST_LEVEL } = load('src/game/systems/WaveDefinitions.ts');
 
 test('every implemented structure exposes exactly three upgrades', () => {
@@ -92,7 +92,7 @@ test('the vertical slice authors ten waves and ends with the escorted carrier bo
   assert.equal(LAST_LEVEL, 10);
   assert.equal(WAVES.length, 10);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'carrier-boss').length, 1);
-  assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 12);
+  assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
   assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
   assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.speedMultiplier), [1.35, 1.55, 1.75, 2]);
   assert.deepEqual(WAVES.slice(5, 9).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'scout').length), [12, 12, 10, 12]);
@@ -143,7 +143,7 @@ test('carrier boss patrols without descending and drops scouts without an active
   assert.equal(bars.every((bar) => bar.visible), true);
 
   boss.updateMovement(17_200, 15_600);
-  assert.equal(deployed.length, 9);
+  assert.equal(deployed.length, 14);
 
   for (let hit = 0; hit < 45; hit += 1) boss.receiveHit({ damage: 1 });
   assert.equal(boss.tint, 0xffdc57);
@@ -179,6 +179,26 @@ test('radar prefers the lowest enemy when health is tied', () => {
 
   assert.equal(top.getHealth(), 3);
   assert.equal(bottom.getHealth(), 2);
+});
+
+test('persistent radar lock stays on its active target when another enemy becomes stronger', () => {
+  const locked = new ScoutVeteran({}), strongerLater = new ScoutVeteran({});
+  locked.spawn(100, 200, { health: 4 });
+  strongerLater.spawn(200, 100, { health: 3 });
+  const radar = Object.create(Radar.prototype);
+  radar.definition = Radar.definition;
+  radar.upgradeDefinitions = RADAR_UPGRADES;
+  radar.upgrades = new Set(['persistent-lock']);
+  radar.markedEnemies = [];
+  radar.scene = { data: { get: () => ({ getChildren: () => [locked, strongerLater] }) } };
+
+  radar.update(0);
+  assert.equal(radar.markedEnemies[0], locked);
+  locked.receiveHit({ damage: 1 });
+  assert(locked.getHealth() < strongerLater.getHealth());
+  radar.update(1);
+
+  assert.equal(radar.markedEnemies[0], locked);
 });
 
 test('uniform spawning preserves type defaults, health colors and reuse resets', () => {
@@ -247,6 +267,7 @@ function turret() {
   result.definition = Turret.definition;
   result.upgradeDefinitions = TURRET_UPGRADES;
   result.upgrades = new Set();
+  result.upgradeIndicators = [];
   return result;
 }
 function cardSystem(structures) {
@@ -267,8 +288,8 @@ function cardSystem(structures) {
   };
   return { system: new OutpostCardSystem(slots), slots };
 }
-function cards(structures) {
-  return cardSystem(structures).system.draw();
+function cards(structures, includeUpgrades = true) {
+  return cardSystem(structures).system.draw(includeUpgrades);
 }
 function structureCards(structures) {
   return new OutpostCardSystem({ getStructures: () => structures, labelFor: (i) => `SLOT ${i}`, place() {} }).drawStructures();
@@ -284,19 +305,23 @@ test('card quotas follow free slots and never replace missing upgrades with stru
     assert.equal(hand.filter((card) => card.description.startsWith('Torretta:')).length, 3 - free);
   }
   assert.equal(cards([undefined, undefined, structureWithoutUpgrades('wall')]).length, 2);
+  assert.equal(cards([turret(), turret(), turret()], false).length, 0);
+  const structureOnlyHand = cards([turret(), turret(), undefined], false);
+  assert.equal(structureOnlyHand.length, 3);
+  assert(structureOnlyHand.every((card) => card.kind === 'structure'));
 });
 
 test('upgrade cards apply once to every structure of their type', () => {
   const first = turret(), second = turret();
   const { system, slots } = cardSystem([first, second, structureWithoutUpgrades('wall')]);
-  const hand = system.draw();
+  const hand = system.draw(true);
   assert.equal(hand[0].kind, 'upgrade');
   hand[0].apply();
   assert(first.hasUpgrade(TURRET_UPGRADES[0].id));
   assert(second.hasUpgrade(TURRET_UPGRADES[0].id));
-  assert.equal(system.draw().some((card) => card.name === TURRET_UPGRADES[0].name), false);
+  assert.equal(system.draw(true).some((card) => card.name === TURRET_UPGRADES[0].name), false);
   for (const upgrade of TURRET_UPGRADES) slots.applyUpgrade('turret', upgrade.id);
-  assert.equal(system.draw().length, 0);
+  assert.equal(system.draw(true).length, 0);
 });
 
 test('structure type upgrades are inherited by structures placed later', () => {
@@ -331,6 +356,36 @@ test('structure cards only target empty slots', () => {
   assert(hand.every((card) => card.targets.length === 1));
   assert(hand.every((card) => card.targets[0].label === 'SLOT 1'));
   assert.equal(structureCards([turret(), turret(), turret()]).length, 0);
+});
+
+test('unique support structures disappear from cards after placement', () => {
+  const powerPlant = { definition: PowerPlant.definition };
+  const ammoDepot = { definition: AmmoDepot.definition };
+  const names = structureCards([powerPlant, ammoDepot, undefined]).map((card) => card.name);
+  assert.equal(names.includes(PowerPlant.definition.name), false);
+  assert.equal(names.includes(AmmoDepot.definition.name), false);
+});
+
+test('slot placement rejects a second copy of a unique structure', () => {
+  let created = 0;
+  class UniqueStructure {
+    constructor() { created += 1; this.definition = UniqueStructure.definition; }
+    install() {}
+    applyUpgrade() {}
+  }
+  UniqueStructure.definition = {
+    kind: 'power-plant', name: 'CENTRALE', description: '', color: 0, unique: true,
+  };
+  const slots = Object.create(StructureSlots.prototype);
+  slots.scene = {};
+  slots.structures = [undefined, undefined, undefined];
+  slots.structureUpgrades = new Map();
+
+  slots.place(0, UniqueStructure);
+  slots.place(1, UniqueStructure);
+
+  assert.equal(created, 1);
+  assert.equal(slots.getStructures().filter(Boolean).length, 1);
 });
 
 test('combat applies direct and area damage once, supports piercing and resets pooled shots', () => {

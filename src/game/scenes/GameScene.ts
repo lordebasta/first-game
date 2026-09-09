@@ -137,12 +137,12 @@ export class GameScene extends Phaser.Scene {
 
   private handleWaveCleared(wave: number): void {
     this.waveText.setText(`ONDATA  ${(wave + 1).toString().padStart(2, "0")} / ${this.lastLevel}`);
-    this.openStructureChoice();
+    this.openStructureChoice(wave);
   }
 
-  private openStructureChoice(): void {
+  private openStructureChoice(completedWave: number): void {
     this.structureSlots.repairAll();
-    this.showStructureChoice(this.outpostCards.draw());
+    this.showStructureChoice(this.outpostCards.draw(completedWave % 2 === 0));
   }
 
   private openDevStructureChoice(): void {
@@ -230,6 +230,7 @@ export class GameScene extends Phaser.Scene {
     this.pauseView = new PauseView(this, {
       onResume: () => this.closePauseMenu(),
       onMenu: () => this.scene.start("menu"),
+      onMusicVolumeChange: (value) => this.backgroundMusic?.setVolume(value),
     });
   }
 

@@ -9,7 +9,7 @@ const BOSS_HEALTH = 60;
 const HORIZONTAL_SPEED = 92;
 const SIDE_MARGIN = 72;
 const FIRST_DROP_DELAY_MS = 1_600;
-const DROP_INTERVAL_MS = 1_800;
+const DROP_INTERVAL_MS = 1_200;
 const HEALTH_BAR_WIDTH = 108;
 const BOSS_COLOR = 0xffdc57;
 
@@ -89,7 +89,7 @@ export class CarrierBoss extends Enemy {
       this.scene.physics.add.existing(scout);
       this.enemyGroup.add(scout);
     }
-    scout.spawn(this.x, this.y + this.displayHeight / 2 + 18, { health: 3 });
+    scout.spawn(this.x, this.y + this.displayHeight / 2 + 18, { health: 2 });
   }
 
   private positionHealthBar(): void {

@@ -23,6 +23,9 @@ export class StructureSlots {
 
   place(slot: number, StructureClass: StructureConstructor): void {
     if (this.structures[slot]) return;
+    if (StructureClass.definition.unique && this.structures.some(
+      (structure) => structure?.definition.kind === StructureClass.definition.kind,
+    )) return;
     const structure = createStructure(StructureClass, this.scene, SLOT_X[slot], SLOT_Y);
     this.structures[slot] = structure;
     structure.install();

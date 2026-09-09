@@ -2,7 +2,19 @@ import Phaser from "phaser";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../constants";
 import { LAST_LEVEL } from "../systems/WaveDefinitions";
 import { createButton, createSlider } from "../ui";
-import { initializeAudioVolume, preloadBackgroundMusic } from "../audio/BackgroundMusic";
+import {
+  getMusicVolume,
+  initializeMusicVolume,
+  preloadBackgroundMusic,
+  setMusicVolume,
+} from "../audio/BackgroundMusic";
+import { preloadSoundEffects } from "../audio/preloadSoundEffects";
+import {
+  getSoundEffectsVolume,
+  initializeSoundEffectsVolume,
+  playUiClickSound,
+  setSoundEffectsVolume,
+} from "../audio/SoundEffects";
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -11,10 +23,12 @@ export class MenuScene extends Phaser.Scene {
 
   preload(): void {
     preloadBackgroundMusic(this);
+    preloadSoundEffects(this);
   }
 
   create(): void {
-    initializeAudioVolume(this);
+    initializeMusicVolume(this);
+    initializeSoundEffectsVolume(this);
     this.add
       .text(GAME_WIDTH / 2, 180, "LAST OUTPOST", {
         color: COLORS.text,
@@ -32,26 +46,37 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    createButton(this, GAME_WIDTH / 2, 360, "GIOCA", () => this.startGame());
+    createButton(this, GAME_WIDTH / 2, 335, "GIOCA", () => this.startGame());
     createSlider(
       this,
       GAME_WIDTH / 2,
-      465,
-      "VOLUME",
-      this.sound.volume,
-      (value) => this.sound.setVolume(value),
+      475,
+      "MUSICA",
+      getMusicVolume(this),
+      (value) => setMusicVolume(this, value),
+      190,
+    );
+    createSlider(
+      this,
+      GAME_WIDTH / 2,
+      570,
+      "EFFETTI",
+      getSoundEffectsVolume(this),
+      (value) => setSoundEffectsVolume(this, value),
+      190,
+      () => playUiClickSound(this),
     );
 
     this.add
       .text(
         GAME_WIDTH / 2,
-        GAME_HEIGHT - 70,
+        GAME_HEIGHT - 60,
         "Movimento: A/D o frecce\nFuoco: Spazio o click sinistro",
         {
           align: "center",
           color: COLORS.mutedText,
           fontFamily: "monospace",
-          fontSize: "18px",
+          fontSize: "16px",
           lineSpacing: 8,
         },
       )

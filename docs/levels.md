@@ -9,7 +9,7 @@ l'ondata 10; le ondate 11-30 restano la struttura prevista per la campagna compl
 
 Ogni ondata e una singola formazione. Fra un'ondata e la successiva c'e una
 pausa breve: le strutture danneggiate recuperano un punto integrita e il
-giocatore puo scegliere un potenziamento. Dopo le ondate 5, 10, 15, 20 e 25 la
+giocatore puo scegliere un potenziamento ogni due ondate. Dopo le ondate 5, 10, 15, 20 e 25 la
 pausa puo essere piu lunga per evidenziare il mini-boss appena sconfitto.
 
 ## Nemici iniziali
@@ -56,8 +56,8 @@ marcatura con trasparenza, senza sostituire il colore della vita.
   integrita e obbligano a scegliere se aprire subito il centro oppure ripulire
   prima i lati.
 - 10: nave madre da 60 integrita. Non scende: pattuglia orizzontalmente la parte
-  alta dello schermo, protetta da due righe di 6 Infantry da 4 integrita, e
-  rilascia uno Scout da 2 integrita ogni 1,8 secondi, dopo un primo rilascio
+  alta dello schermo, protetta da tre righe di 6 Infantry da 4 integrita, e
+  rilascia uno Scout da 2 integrita ogni 1,2 secondi, dopo un primo rilascio
   ritardato di 1,6 secondi. Non esiste un limite agli Scout attivi; gli Scout
   rimasti devono essere eliminati per vincere.
 - 11-15: Infantry, Bombardieri e alcuni Scout; ondata 15 mini-boss.

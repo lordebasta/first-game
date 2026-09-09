@@ -9,6 +9,7 @@ export interface StructureDefinition {
   description: string;
   color: number;
   availableInCards?: boolean;
+  unique?: boolean;
 }
 
 export interface StructureConstructor {
@@ -25,6 +26,7 @@ export interface StructureUpgrade {
 /** Base visual and lifecycle for a structure. Structures intentionally have no physics body. */
 export abstract class OutpostStructure extends Phaser.GameObjects.Container {
   private readonly upgrades = new Set<string>();
+  private readonly upgradeIndicators: Phaser.GameObjects.Arc[];
 
   constructor(
     scene: Phaser.Scene,
@@ -36,14 +38,20 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     const base = scene.add.rectangle(0, 0, 178, 52, COLORS.panel).setStrokeStyle(3, definition.color);
     const roof = scene.add.triangle(0, -29, 0, 18, 42, 18, 21, 0, definition.color);
     const label = scene.add
-      .text(0, 7, definition.name, {
+      .text(0, 1, definition.name, {
         color: "#e8f7ff",
         fontFamily: "monospace",
         fontSize: "14px",
         fontStyle: "bold",
       })
       .setOrigin(0.5);
-    super(scene, x, y, [base, roof, label]);
+    const upgradeIndicators = upgradeDefinitions.map((_upgrade, index) =>
+      scene.add
+        .circle((index - (upgradeDefinitions.length - 1) / 2) * 15, 19, 4, COLORS.panel)
+        .setStrokeStyle(2, definition.color),
+    );
+    super(scene, x, y, [base, roof, label, ...upgradeIndicators]);
+    this.upgradeIndicators = upgradeIndicators;
     scene.add.existing(this);
   }
 
@@ -77,12 +85,21 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
       return;
     }
     this.upgrades.add(id);
+    this.refreshUpgradeIndicators();
     this.onUpgradeApplied(id);
   }
 
   removeUpgrade(id: string): void {
     if (!this.upgrades.delete(id)) return;
+    this.refreshUpgradeIndicators();
     this.onUpgradeRemoved(id);
+  }
+
+  private refreshUpgradeIndicators(): void {
+    this.upgradeIndicators.forEach((indicator, index) => {
+      const acquired = index < this.upgrades.size;
+      indicator.setFillStyle(acquired ? this.definition.color : COLORS.panel);
+    });
   }
 
   /** Hook used by adjacent Power Plants; only automatic structures override it. */

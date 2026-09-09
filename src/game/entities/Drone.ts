@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { COLORS } from "../constants";
 import { Enemy } from "./Enemy";
 import { PlayerWeapon } from "../systems/PlayerWeapon";
+import { playLaserSound } from "../audio/SoundEffects";
 
 const DRONE_Y = 530;
 const MOVE_SPEED = 260;
@@ -44,6 +45,7 @@ export class Drone extends Phaser.GameObjects.Container {
     }
     if (options.laser) {
       target.receiveHit({ damage: 1, source: this });
+      playLaserSound(this.scene);
       const beam = this.scene.add.line(0, 0, this.x, this.y - 18, target.x, target.y, 0x9fe7ff, 0.9)
         .setOrigin(0)
         .setLineWidth(2);

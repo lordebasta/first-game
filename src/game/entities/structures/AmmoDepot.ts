@@ -15,6 +15,7 @@ export class AmmoDepot extends OutpostStructure {
     name: "DEPOSITO MUNIZIONI",
     description: "Ogni quinto colpo del player diventa una raffica ad area",
     color: COLORS.projectile,
+    unique: true,
   } as const;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {

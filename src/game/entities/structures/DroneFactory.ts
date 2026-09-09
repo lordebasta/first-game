@@ -4,6 +4,7 @@ import { COLORS } from "../../constants";
 import { RUN_DATA } from "../../RunData";
 import { PlayerWeapon } from "../../systems/PlayerWeapon";
 import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
+import { playUiClickSound } from "../../audio/SoundEffects";
 
 export const DRONE_FACTORY_UPGRADES = [
   { id: "assembly-line", name: "LINEA DI ASSEMBLAGGIO", description: "+1 drone" },
@@ -69,6 +70,7 @@ export class DroneFactory extends OutpostStructure {
         .setPadding(5, 3)
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => {
+          playUiClickSound(this.scene);
           this.priority = this.priority === "lowest" ? "strongest" : "lowest";
           this.priorityButton?.setText(this.priority === "lowest" ? "PRIORITA: BASE" : "PRIORITA: VITA");
         });

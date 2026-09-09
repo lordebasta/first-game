@@ -93,11 +93,11 @@ export const WAVES: readonly WaveDefinition[] = [
   },
   {
     columns: 6,
-    rows: 3,
+    rows: 4,
     speedMultiplier: 2,
     enemies: [
       { kind: "carrier-boss", column: 2.5, row: 0 },
-      ...Array.from({ length: 12 }, (_, index) => ({
+      ...Array.from({ length: 18 }, (_, index) => ({
         ...infantry(),
         column: index % 6,
         row: 1 + Math.floor(index / 6),
