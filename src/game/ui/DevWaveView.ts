@@ -17,7 +17,7 @@ export class DevWaveView {
     const title = scene.add.text(GAME_WIDTH / 2, 145, "SALTA ALL'ONDATA", {
       color: COLORS.text, fontFamily: "monospace", fontSize: "26px", fontStyle: "bold",
     }).setOrigin(0.5);
-    this.modal = scene.add.container(0, 0, [overlay, title]);
+    this.modal = scene.add.container(0, 0, [overlay, title]).setDepth(100);
 
     for (let wave = 1; wave <= options.lastWave; wave += 1) {
       const column = (wave - 1) % 5;

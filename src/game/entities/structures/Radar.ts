@@ -16,6 +16,7 @@ export class Radar extends OutpostStructure {
     name: "RADAR",
     description: "Marca il nemico piu resistente e lo rende vulnerabile",
     color: COLORS.player,
+    unique: true,
   } as const;
 
   private markedEnemies: Enemy[] = [];
@@ -27,10 +28,11 @@ export class Radar extends OutpostStructure {
   protected override onUpdate(_time: number): void {
     const enemies = (this.scene.data.get(RUN_DATA.enemies) as Phaser.Physics.Arcade.Group)
       .getChildren()
-      .filter((object) => object.active) as Enemy[];
+      .filter((object): object is Enemy =>
+        object instanceof Enemy && object.canBeTargetedAutomatically());
     const count = this.hasUpgrade("double-scan") ? 2 : 1;
     const retained = this.hasUpgrade("persistent-lock")
-      ? this.markedEnemies.filter((enemy) => enemy.active).slice(0, count)
+      ? this.markedEnemies.filter((enemy) => enemy.canBeTargetedAutomatically()).slice(0, count)
       : [];
     const targets = [...retained];
     const strongest = [...enemies].sort((a, b) =>

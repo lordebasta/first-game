@@ -13,7 +13,7 @@ export const TURRET_UPGRADES = [
   // { id: "twin", name: "CANNE GEMELLE", description: "+1 proiettile per raffica" }, // DOPO
   // { id: "rapid", name: "MECCANISMO RAPIDO", description: "-25% attesa fra le raffiche" }, // DOPO
   { id: "damage", name: "ALTO IMPATTO", description: "+1 danno per proiettile" },
-  { id: "explosive", name: "COLPI ESPLOSIVI", description: "Danno ad area entro 65 pixel" },
+  { id: "explosive", name: "COLPI ESPLOSIVI", description: "Danno ad area entro 80 pixel" },
   { id: "piercing", name: "COLPI PERFORANTI", description: "Attraversa 1 invasore aggiuntivo" },
   // { id: "stable", name: "STABILIZZATORE", description: "+30% velocita dei proiettili" }, // DOPO
 ] as const satisfies readonly StructureUpgrade[];
@@ -23,6 +23,7 @@ export class Turret extends OutpostStructure {
     name: "TORRETTA",
     description: "Spara automaticamente verso l'alto",
     color: COLORS.projectile,
+    unique: true,
   } as const;
 
   private nextShotAt = 0;
@@ -53,7 +54,7 @@ export class Turret extends OutpostStructure {
     this.weapon.fireFrom(time, origin, horizontalVelocity, {
       damage: this.hasUpgrade("damage") ? 2 : 1,
       pierce: this.hasUpgrade("piercing") ? 1 : 0,
-      explosionRadius: this.hasUpgrade("explosive") ? 65 : 0,
+      explosionRadius: this.hasUpgrade("explosive") ? 80 : 0,
       speedMultiplier: 1.2,
       tint: 0x9fe7ff,
       scale: 0.78,
@@ -64,7 +65,8 @@ export class Turret extends OutpostStructure {
   private findTarget(): Enemy | undefined {
     const enemies = (this.scene.data.get(RUN_DATA.enemies) as Phaser.Physics.Arcade.Group)
       .getChildren()
-      .filter((object): object is Enemy => object instanceof Enemy && object.active);
+      .filter((object): object is Enemy =>
+        object instanceof Enemy && object.canBeTargetedAutomatically());
     return enemies
       .filter((enemy) => Math.abs(enemy.x - this.x) <= TARGETING_HALF_WIDTH)
       .sort((first, second) => second.y - first.y)[0];

@@ -5,6 +5,8 @@ import { Infantry } from "../entities/Infantry";
 import { Scout } from "../entities/Scout";
 import { ScoutVeteran } from "../entities/ScoutVeteran";
 import { CarrierBoss } from "../entities/CarrierBoss";
+import { Bomber } from "../entities/Bomber";
+import { SiegeBomberBoss } from "../entities/SiegeBomberBoss";
 import { getWaveDefinition, LAST_LEVEL, type EnemyKind, type WaveEnemy } from "./WaveDefinitions";
 
 const START_Y = 94;
@@ -230,6 +232,10 @@ export class EnemySpawner {
         return enemy instanceof Infantry;
       case "carrier-boss":
         return enemy instanceof CarrierBoss;
+      case "bomber":
+        return enemy instanceof Bomber;
+      case "siege-bomber-boss":
+        return enemy instanceof SiegeBomberBoss;
     }
   }
 
@@ -243,6 +249,10 @@ export class EnemySpawner {
         return new Infantry(this.scene);
       case "carrier-boss":
         return new CarrierBoss(this.scene, this.group);
+      case "bomber":
+        return new Bomber(this.scene, this.group);
+      case "siege-bomber-boss":
+        return new SiegeBomberBoss(this.scene, this.group);
     }
   }
 

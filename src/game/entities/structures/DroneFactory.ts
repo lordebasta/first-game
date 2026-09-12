@@ -19,6 +19,7 @@ export class DroneFactory extends OutpostStructure {
     name: "FABBRICA DRONI",
     description: "Un drone punta e spara al nemico piu in basso",
     color: COLORS.accent,
+    unique: true,
   } as const;
 
   private readonly drones: Drone[] = [];

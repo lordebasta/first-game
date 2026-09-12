@@ -30,7 +30,7 @@ export class DevStructureView {
     const leftTitle = scene.add.text(150, 86, "STRUTTURE", {
       color: "#56f29a", fontFamily: "monospace", fontSize: "14px", fontStyle: "bold",
     }).setOrigin(0.5);
-    this.modal = scene.add.container(0, 0, [overlay, title, leftTitle]);
+    this.modal = scene.add.container(0, 0, [overlay, title, leftTitle]).setDepth(100);
 
     DEV_STRUCTURE_CATALOG.forEach((entry, index) => {
       const button = createButton(scene, 150, 126 + index * 57, entry.StructureClass.definition.name, () => {

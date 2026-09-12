@@ -39,7 +39,7 @@ export class StructureChoiceView {
         color: "#8fb2c9", fontFamily: "monospace", fontSize: "16px",
       })
       .setOrigin(0.5);
-    this.modal = scene.add.container(0, 0, [overlay, title, subtitle]);
+    this.modal = scene.add.container(0, 0, [overlay, title, subtitle]).setDepth(100);
     this.showChoices();
   }
 

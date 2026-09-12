@@ -16,7 +16,11 @@ function graphics() {
 
 class Sprite {
   constructor(scene, x = 0, y = 0) {
-    Object.assign(this, { scene: scene.add ? scene : { ...scene, add: { graphics } }, x, y, body: { reset() {} } });
+    const body = {
+      reset() {},
+      setSize(width, height) { this.width = width; this.height = height; return this; },
+    };
+    Object.assign(this, { scene: scene.add ? scene : { ...scene, add: { graphics } }, x, y, body });
   }
   enableBody(_reset, x, y) { Object.assign(this, { x, y, active: true }); }
   disableBody() { this.active = false; }
@@ -27,6 +31,7 @@ class Sprite {
   setX(x) { this.x = x; }
   setTint(color) { this.tint = color; }
   setAlpha(alpha) { this.alpha = alpha; }
+  setDepth(depth) { this.depth = depth; return this; }
 }
 
 const phaser = {
@@ -61,6 +66,9 @@ function load(relativePath) {
 const { Scout } = load('src/game/entities/Scout.ts');
 const { ScoutVeteran } = load('src/game/entities/ScoutVeteran.ts');
 const { CarrierBoss } = load('src/game/entities/CarrierBoss.ts');
+const { SiegeBomberBoss } = load('src/game/entities/SiegeBomberBoss.ts');
+const { Bomber } = load('src/game/entities/Bomber.ts');
+const { Bomb } = load('src/game/entities/Bomb.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
 const { Drone } = load('src/game/entities/Drone.ts');
@@ -68,16 +76,14 @@ const { CombatSystem } = load('src/game/systems/CombatSystem.ts');
 const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
-const { WALL_UPGRADES } = load('src/game/entities/structures/Wall.ts');
 const { PowerPlant, POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
-const { DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
+const { DroneFactory, DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
 const { AmmoDepot, AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
 const { WAVES, LAST_LEVEL } = load('src/game/systems/WaveDefinitions.ts');
 
 test('every implemented structure exposes exactly three upgrades', () => {
   for (const upgrades of [
-    WALL_UPGRADES,
     POWER_PLANT_UPGRADES,
     DRONE_FACTORY_UPGRADES,
     TURRET_UPGRADES,
@@ -88,9 +94,15 @@ test('every implemented structure exposes exactly three upgrades', () => {
   }
 });
 
-test('the vertical slice authors ten waves and ends with the escorted carrier boss', () => {
-  assert.equal(LAST_LEVEL, 10);
-  assert.equal(WAVES.length, 10);
+test('every selectable structure is unique for the current build', () => {
+  for (const StructureClass of [PowerPlant, DroneFactory, Turret, Radar, AmmoDepot]) {
+    assert.equal(StructureClass.definition.unique, true);
+  }
+});
+
+test('the campaign authors fifteen waves with a progressive bomber arc', () => {
+  assert.equal(LAST_LEVEL, 15);
+  assert.equal(WAVES.length, 15);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'carrier-boss').length, 1);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
   assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
@@ -106,6 +118,11 @@ test('the vertical slice authors ten waves and ends with the escorted carrier bo
     assert.equal(scouts[0].spawnDelayMs, 0);
     assert.equal(scouts.at(-1).spawnDelayMs, 10_000);
   }
+  assert.equal(WAVES[10].enemies.filter((enemy) => enemy.kind === 'bomber').length, 1);
+  assert.deepEqual(WAVES.slice(11, 14).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'bomber').length), [1, 2, 2]);
+  assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
+  assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'scout')));
+  assert.equal(WAVES[14].enemies.filter((enemy) => enemy.kind === 'siege-bomber-boss').length, 1);
 });
 
 test('carrier boss patrols without descending and drops scouts without an active limit', () => {
@@ -147,6 +164,66 @@ test('carrier boss patrols without descending and drops scouts without an active
 
   for (let hit = 0; hit < 45; hit += 1) boss.receiveHit({ damage: 1 });
   assert.equal(boss.tint, 0xffdc57);
+});
+
+test('wave-fifteen boss reacts to destroyed hardpoints with scout attack phases', () => {
+  const teleportTweens = [];
+  const scene = {
+    add: {
+      graphics,
+      existing() {},
+      rectangle(x, y, width) {
+        return {
+          x, y, displayWidth: width,
+          setDepth() { return this; }, setOrigin() { return this; }, setVisible() { return this; },
+          setAlpha(alpha) { this.alpha = alpha; return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+        };
+      },
+    },
+    physics: { add: { existing() {} } },
+    tweens: {
+      add(config) {
+        teleportTweens.push(config);
+        config.onComplete?.();
+      },
+    },
+  };
+  const deployed = [];
+  const group = { getChildren: () => deployed, add: (enemy) => deployed.push(enemy) };
+  const boss = new SiegeBomberBoss(scene, group);
+  boss.spawn(360, 94);
+  boss.displayHeight = 54;
+  assert.equal(boss.canBeTargetedAutomatically(), false);
+  assert(boss.hardpoints.every((hardpoint) => hardpoint.scaleX === 1 && hardpoint.depth === 1));
+  const initialHardpointBarWidth = boss.hardpoints[0].healthBar.displayWidth;
+  boss.hardpoints[0].receiveHit({ damage: 1 });
+  assert(boss.hardpoints[0].healthBar.displayWidth < initialHardpointBarWidth);
+  assert.equal(boss.hardpoints[0].tint, 0xff5470);
+
+  boss.hardpoints[0].deactivate();
+  boss.updateMovement(100, 100);
+  boss.updateMovement(340, 240);
+  boss.updateMovement(580, 240);
+  assert.equal(deployed.filter((enemy) => enemy instanceof Scout).length, 3);
+
+  const xBeforeFrenzy = boss.x;
+  boss.hardpoints[1].deactivate();
+  boss.updateMovement(590, 10);
+  assert.equal(boss.canBeTargetedAutomatically(), true);
+  assert.notEqual(boss.x, xBeforeFrenzy);
+  assert.equal(deployed.filter((enemy) => enemy instanceof Scout).length, 4);
+
+  for (let attack = 1; attack < 16; attack += 1) {
+    boss.updateMovement(590 + attack * 650, 650);
+  }
+  const afterFrenzy = deployed.length;
+  assert.equal(deployed.filter((enemy) => enemy instanceof Scout).length, 11);
+  assert.equal(deployed.filter((enemy) => enemy instanceof Bomb).length, 8);
+  assert.equal(teleportTweens.length, 32);
+  assert.deepEqual(teleportTweens.slice(0, 2).map((tween) => tween.alpha), [0, 1]);
+  boss.updateMovement(10_640, 300);
+  assert.equal(deployed.length, afterFrenzy);
 });
 
 test('radar vulnerability adds damage instead of multiplying it', () => {
@@ -217,6 +294,20 @@ test('uniform spawning preserves type defaults, health colors and reuse resets',
     assert.equal(enemy.alpha, 1);
     assert.equal(enemy.scaleX, 1);
   }
+});
+
+test('bombers use the maximum health represented by the five-color palette', () => {
+  const bomber = new Bomber({}, { getChildren: () => [], add() {} });
+  bomber.spawn(100, 100);
+  assert.equal(bomber.getHealth(), 5);
+  assert.equal(bomber.tint, 0x56f29a);
+
+  bomber.receiveHit({ damage: 1 });
+  assert.equal(bomber.getHealth(), 4);
+  assert.equal(bomber.tint, 0xffdc57);
+  assert(WAVES.flatMap((wave) => wave.enemies)
+    .filter((enemy) => enemy.kind === 'bomber')
+    .every((enemy) => enemy.health === undefined || enemy.health <= 5));
 });
 
 test('Scout and veteran keep their own descent speed and inherited oscillation', () => {
@@ -304,12 +395,12 @@ test('card quotas follow free slots and never replace missing upgrades with stru
     assert.equal(hand.length, 3);
     assert.equal(hand.filter((card) => card.description.startsWith('Torretta:')).length, 3 - free);
   }
-  assert.equal(cards([undefined, undefined, structureWithoutUpgrades('wall')]).length, 2);
+  assert.equal(cards([undefined, undefined, structureWithoutUpgrades('radar')]).length, 2);
 });
 
 test('upgrade cards apply once to every structure of their type', () => {
   const first = turret(), second = turret();
-  const { system, slots } = cardSystem([first, second, structureWithoutUpgrades('wall')]);
+  const { system, slots } = cardSystem([first, second, structureWithoutUpgrades('radar')]);
   const hand = system.draw();
   assert.equal(hand[0].kind, 'upgrade');
   hand[0].apply();
@@ -346,7 +437,7 @@ test('structure type upgrades are inherited by structures placed later', () => {
 });
 
 test('structure cards only target empty slots', () => {
-  const hand = structureCards([turret(), undefined, structureWithoutUpgrades('wall')]);
+  const hand = structureCards([turret(), undefined, structureWithoutUpgrades('radar')]);
   assert.equal(hand.length, 3);
   assert(hand.every((card) => card.kind === 'structure'));
   assert(hand.every((card) => card.targets.length === 1));
@@ -388,7 +479,10 @@ test('combat applies direct and area damage once, supports piercing and resets p
   let overlap;
   const scene = {
     physics: { add: { overlap: (_a, _b, callback) => { overlap = callback; } } },
-    add: { circle: () => ({ destroy() {} }) },
+    add: {
+      circle: () => ({ destroy() {} }),
+      rectangle: () => ({ angle: 0, setRotation() { return this; }, destroy() {} }),
+    },
     tweens: { add() {} },
   };
   const target = (x) => {

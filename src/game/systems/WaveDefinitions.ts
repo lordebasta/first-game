@@ -1,4 +1,4 @@
-export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss";
+export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "siege-bomber-boss";
 import type { EnemyHealth } from "../entities/Enemy";
 
 export interface WaveEnemy {
@@ -103,6 +103,53 @@ export const WAVES: readonly WaveDefinition[] = [
         row: 1 + Math.floor(index / 6),
       })),
     ],
+  },
+  {
+    columns: 6,
+    rows: 3,
+    speedMultiplier: 1.8,
+    enemies: [
+      { kind: "bomber", column: 2.5, row: 0 },
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(4), column: index % 6, row: 1 + Math.floor(index / 6) })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 4,
+    speedMultiplier: 1.9,
+    enemies: [
+      { kind: "bomber", column: 2.5, row: 0 },
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(index % 5 === 0 ? 5 : 4), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...staggerOverTenSeconds(Array.from({ length: 6 }, (_, index) => ({ ...scout(), column: index, row: 3 }))),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2,
+    enemies: [
+      { kind: "bomber", column: 1, row: 0 },
+      { kind: "bomber", column: 4, row: 0 },
+      ...Array.from({ length: 16 }, (_, index) => ({ ...infantry(index % 4 === 0 ? 5 : 4), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...staggerOverTenSeconds(Array.from({ length: 8 }, (_, index) => ({ ...toughScout(), column: index % 6, row: 3 + Math.floor(index / 6) }))),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2.1,
+    enemies: [
+      { kind: "bomber", column: 1, row: 0 },
+      { kind: "bomber", column: 4, row: 0 },
+      ...Array.from({ length: 18 }, (_, index) => ({ ...infantry(index % 3 === 0 ? 6 : 5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...staggerOverTenSeconds(Array.from({ length: 10 }, (_, index) => ({ ...(index % 2 ? toughScout() : scout()), column: index % 6, row: 4 + Math.floor(index / 6) }))),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 1,
+    speedMultiplier: 1,
+    enemies: [{ kind: "siege-bomber-boss", column: 2.5, row: 0 }],
   },
 ];
 

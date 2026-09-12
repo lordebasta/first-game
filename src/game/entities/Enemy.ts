@@ -10,8 +10,10 @@ export interface EnemySpawnOptions {
 export interface EnemyDefinition {
   readonly texture: string;
   readonly health: EnemyHealth;
+  readonly usesHealthColors?: boolean;
 }
-const HEALTH_COLORS = [0xff5470, 0xb86aff, 0x428dff, 0xffdc57] as const;
+const HEALTH_COLORS = [0xff5470, 0xb86aff, 0x428dff, 0xffdc57, 0x56f29a] as const;
+export const MAX_COLOR_CODED_HEALTH: EnemyHealth = HEALTH_COLORS.length;
 
 /** Shared combat and lifecycle contract for every enemy type. */
 export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hittable {
@@ -38,6 +40,10 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
 
   usesFormationMovement(): boolean {
     return true;
+  }
+
+  canBeTargetedAutomatically(): boolean {
+    return this.active;
   }
 
   updateMovement(_time: number, _delta: number): void {}
@@ -90,7 +96,8 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
   }
 
   private updateHealthColor(): void {
-    const index = Math.max(0, Math.min(3, Math.ceil(this.health) - 1));
+    if (this.definition.usesHealthColors === false) return;
+    const index = Math.max(0, Math.min(HEALTH_COLORS.length - 1, Math.ceil(this.health) - 1));
     this.setTint(HEALTH_COLORS[index]);
   }
 

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../../constants";
 
-export type StructureKind = "wall" | "power-plant" | "drone-factory" | "turret" | "radar" | "ammo-depot";
+export type StructureKind = "power-plant" | "drone-factory" | "turret" | "radar" | "ammo-depot";
 
 export interface StructureDefinition {
   kind: StructureKind;

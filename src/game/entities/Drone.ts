@@ -29,8 +29,11 @@ export class Drone extends Phaser.GameObjects.Container {
   }
 
   update(time: number, enemies: readonly Enemy[], options: DroneUpdateOptions): void {
-    if (!this.target?.active || !enemies.includes(this.target) || this.targetPriority !== options.priority) {
-      this.target = this.chooseTarget(enemies, options.priority);
+    const targetableEnemies = enemies.filter((enemy) => enemy.canBeTargetedAutomatically());
+    if (!this.target?.canBeTargetedAutomatically()
+      || !targetableEnemies.includes(this.target)
+      || this.targetPriority !== options.priority) {
+      this.target = this.chooseTarget(targetableEnemies, options.priority);
       this.targetPriority = options.priority;
     }
     const target = this.target;
