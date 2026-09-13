@@ -1,4 +1,4 @@
-export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "golden-raider" | "siege-bomber-boss";
+export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "golden-raider" | "siege-bomber-boss" | "tank" | "war-marshal";
 import type { EnemyHealth } from "../entities/Enemy";
 
 export interface WaveEnemy {
@@ -19,6 +19,7 @@ export interface WaveDefinition {
 const scout = (): WaveEnemy => ({ kind: "scout" });
 const toughScout = (): WaveEnemy => ({ kind: "scout", health: 2 });
 const infantry = (health: EnemyHealth = 4): WaveEnemy => ({ kind: "infantry", health });
+const tank = (): WaveEnemy => ({ kind: "tank" });
 const staggerOverTenSeconds = (enemies: WaveEnemy[]): WaveEnemy[] => enemies.map((enemy, index) => ({
   ...enemy,
   spawnDelayMs: enemies.length <= 1 ? 0 : index * 10_000 / (enemies.length - 1),
@@ -151,6 +152,58 @@ export const WAVES: readonly WaveDefinition[] = [
     rows: 1,
     speedMultiplier: 1,
     enemies: [{ kind: "siege-bomber-boss", column: 2.5, row: 0 }],
+  },
+  {
+    columns: 6,
+    rows: 4,
+    speedMultiplier: 1.85,
+    enemies: [
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(5), column: index % 6, row: Math.floor(index / 6) })),
+      ...[0, 2.5, 5].map((column) => ({ ...tank(), column, row: 3 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 1.95,
+    enemies: [
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(index % 4 === 0 ? 6 : 5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 1.5, 3.5, 5].map((column) => ({ ...tank(), column, row: 4 })),
+      ...staggerOverTenSeconds(Array.from({ length: 6 }, (_, column) => ({ ...toughScout(), column, row: 0 }))),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2,
+    enemies: [
+      { kind: "bomber", column: 2.5, row: 0 },
+      ...Array.from({ length: 14 }, (_, index) => ({ ...infantry(index % 5 === 0 ? 6 : 5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[1, 3, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 6,
+    speedMultiplier: 2.1,
+    enemies: [
+      { kind: "bomber", column: 1, row: 0 },
+      { kind: "bomber", column: 4, row: 0 },
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(index % 3 === 0 ? 6 : 5), column: index % 6, row: 2 + Math.floor(index / 6) })),
+      ...[0, 1.25, 2.5, 3.75, 5].map((column) => ({ ...tank(), column, row: 5 })),
+      ...staggerOverTenSeconds(Array.from({ length: 6 }, (_, column) => ({ ...toughScout(), column, row: 1 }))),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2,
+    enemies: [
+      { kind: "war-marshal", column: 2.5, row: 0 },
+      { kind: "bomber", column: 0, row: 0 },
+      ...Array.from({ length: 18 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 1.7, 3.3, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
   },
 ];
 

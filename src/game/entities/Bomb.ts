@@ -1,10 +1,12 @@
 import Phaser from "phaser";
 import type { Hit } from "../combat/Hit";
-import { showExplosion } from "../graphics/showExplosion";
+import { ExplosionSystem } from "../systems/ExplosionSystem";
 import { Enemy, type EnemyDefinition } from "./Enemy";
 
 const BOMB_SPEED = 112;
 const BOMB_DEFINITION: EnemyDefinition = { texture: "bomb", health: 3 };
+export const BOMB_BLAST_RADIUS = 82;
+export const BOMB_BLAST_DAMAGE = 2;
 
 /** A straight-falling priority target. Structures cannot absorb it. */
 export class Bomb extends Enemy {
@@ -35,6 +37,12 @@ export class Bomb extends Enemy {
   override receiveHit(hit: Hit): void {
     const wasActive = this.active;
     super.receiveHit(hit);
-    if (wasActive && !this.active) showExplosion(this.scene, this.x, this.y, 52);
+    if (!wasActive || this.active) return;
+    new ExplosionSystem(this.scene).explode(
+      new Phaser.Math.Vector2(this.x, this.y),
+      BOMB_BLAST_RADIUS,
+      { damage: BOMB_BLAST_DAMAGE, source: this },
+      this,
+    );
   }
 }

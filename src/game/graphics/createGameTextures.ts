@@ -127,4 +127,31 @@ export function createGameTextures(scene: Phaser.Scene): void {
     graphics.generateTexture("boss-hardpoint", 44, 38);
     graphics.destroy();
   }
+
+  if (!scene.textures.exists("tank")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillRoundedRect(2, 8, 54, 26, 6);
+    graphics.fillRect(12, 3, 34, 12);
+    graphics.fillRect(43, 0, 19, 5);
+    graphics.fillStyle(0x555555, 1);
+    graphics.fillRect(8, 29, 42, 8);
+    graphics.fillCircle(18, 24, 5);
+    graphics.fillCircle(40, 24, 5);
+    graphics.generateTexture("tank", 62, 37);
+    graphics.destroy();
+  }
+
+  if (!scene.textures.exists("war-marshal")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillRoundedRect(12, 8, 106, 38, 10);
+    graphics.fillTriangle(0, 28, 30, 1, 30, 53);
+    graphics.fillTriangle(130, 28, 100, 1, 100, 53);
+    graphics.fillStyle(0x555555, 1);
+    graphics.fillCircle(65, 27, 13);
+    graphics.fillRect(60, 0, 10, 18);
+    graphics.generateTexture("war-marshal", 130, 54);
+    graphics.destroy();
+  }
 }

@@ -12,14 +12,25 @@ export interface EnemyDefinition {
   readonly health: EnemyHealth;
   readonly usesHealthColors?: boolean;
 }
-const HEALTH_COLORS = [0xff5470, 0xb86aff, 0x428dff, 0xffdc57, 0x56f29a] as const;
+const HEALTH_COLORS = [
+  0xff5470,
+  0xb86aff,
+  0x428dff,
+  0xffdc57,
+  0x56f29a,
+  0x48d8e8,
+  0xff9f43,
+  0xe8f7ff,
+] as const;
 export const MAX_COLOR_CODED_HEALTH: EnemyHealth = HEALTH_COLORS.length;
+const SLOWED_MOVEMENT_MULTIPLIER = 0.5;
 
 /** Shared combat and lifecycle contract for every enemy type. */
 export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hittable {
   private currentHealth = 1;
   private marked = false;
   private markedDamageBonus = 1;
+  private slowedUntil = 0;
   private marker?: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, x: number, y: number, private readonly definition: EnemyDefinition) {
@@ -33,6 +44,7 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
     this.setAlpha(1);
     this.health = options.health ?? this.definition.health;
     this.setMarked(false);
+    this.slowedUntil = 0;
     this.onSpawn(x, y);
   }
 
@@ -40,6 +52,18 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
 
   usesFormationMovement(): boolean {
     return true;
+  }
+
+  formationDescentMultiplier(): number {
+    return 1;
+  }
+
+  slowFor(time: number, duration: number): void {
+    this.slowedUntil = Math.max(this.slowedUntil, time + duration);
+  }
+
+  movementSpeedMultiplier(time: number): number {
+    return time < this.slowedUntil ? SLOWED_MOVEMENT_MULTIPLIER : 1;
   }
 
   canBeTargetedAutomatically(): boolean {

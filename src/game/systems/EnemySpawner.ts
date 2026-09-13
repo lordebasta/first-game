@@ -8,6 +8,8 @@ import { CarrierBoss } from "../entities/CarrierBoss";
 import { Bomber } from "../entities/Bomber";
 import { GoldenRaider } from "../entities/GoldenRaider";
 import { SiegeBomberBoss } from "../entities/SiegeBomberBoss";
+import { Tank } from "../entities/Tank";
+import { WarMarshal } from "../entities/WarMarshal";
 import { getWaveDefinition, LAST_LEVEL, type EnemyKind, type WaveEnemy } from "./WaveDefinitions";
 
 const START_Y = 94;
@@ -68,7 +70,7 @@ export class EnemySpawner {
     }
 
     for (const enemy of independentEnemies) {
-      enemy.updateMovement(time, delta);
+      enemy.updateMovement(time, delta * enemy.movementSpeedMultiplier(time));
     }
     for (const enemy of formationEnemies) {
       enemy.updateMarker(delta);
@@ -81,7 +83,8 @@ export class EnemySpawner {
       return;
     }
 
-    const speed = this.formationSpeed(formationEnemies.length);
+    const movementMultiplier = Math.min(...formationEnemies.map((enemy) => enemy.movementSpeedMultiplier(time)));
+    const speed = this.formationSpeed(formationEnemies.length) * movementMultiplier;
     for (const enemy of formationEnemies) {
       enemy.setVelocityX(this.direction * speed);
     }
@@ -91,9 +94,10 @@ export class EnemySpawner {
     }
 
     const horizontalCorrection = this.sideCorrection(formationEnemies);
+    const descentMultiplier = Math.max(...formationEnemies.map((enemy) => enemy.formationDescentMultiplier()));
     this.direction *= -1;
     for (const enemy of formationEnemies) {
-      enemy.moveBy(horizontalCorrection, DESCENT);
+      enemy.moveBy(horizontalCorrection, DESCENT * descentMultiplier);
       enemy.setVelocityX(this.direction * speed);
     }
   }
@@ -240,6 +244,10 @@ export class EnemySpawner {
         return enemy instanceof GoldenRaider;
       case "siege-bomber-boss":
         return enemy instanceof SiegeBomberBoss;
+      case "tank":
+        return enemy instanceof Tank;
+      case "war-marshal":
+        return enemy instanceof WarMarshal;
     }
   }
 
@@ -259,6 +267,20 @@ export class EnemySpawner {
         return new GoldenRaider(this.scene, this.onGoldenRaiderDestroyed);
       case "siege-bomber-boss":
         return new SiegeBomberBoss(this.scene, this.group);
+      case "tank":
+        return new Tank(this.scene);
+      case "war-marshal":
+        return new WarMarshal(this.scene, (marshal) => this.deployMarshalReinforcements(marshal));
+    }
+  }
+
+  private deployMarshalReinforcements(marshal: WarMarshal): void {
+    for (const offset of [-COLUMN_GAP, COLUMN_GAP]) {
+      this.spawnEnemy(
+        { kind: "tank" },
+        Phaser.Math.Clamp(marshal.x + offset, SIDE_MARGIN + 24, GAME_WIDTH - SIDE_MARGIN - 24),
+        marshal.y + ROW_GAP * 3,
+      );
     }
   }
 

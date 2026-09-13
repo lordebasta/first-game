@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { Hittable } from "../combat/Hittable";
 import { COLORS } from "../constants";
+import { Bomb } from "./Bomb";
 
 const PROJECTILE_SPEED = 620;
 
@@ -11,6 +12,7 @@ export interface ProjectileOptions {
   explosionRadius?: number;
   tint?: number;
   scale?: number;
+  bombDamage?: number;
 }
 
 export class Projectile extends Phaser.Physics.Arcade.Sprite {
@@ -18,6 +20,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
   private remainingHits = 1;
   private hitTargets = new Set<Hittable>();
   explosionRadius = 0;
+  private bombDamage?: number;
 
   constructor(scene: Phaser.Scene, x = 0, y = 0) {
     super(scene, x, y, "projectile");
@@ -29,6 +32,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     this.remainingHits = 1 + (options.pierce ?? 0);
     this.hitTargets.clear();
     this.explosionRadius = options.explosionRadius ?? 0;
+    this.bombDamage = options.bombDamage;
     this.setTint(options.tint ?? COLORS.projectile);
     this.setScale(options.scale ?? 1);
     this.setVelocity(horizontalVelocity, -PROJECTILE_SPEED * (options.speedMultiplier ?? 1));
@@ -44,7 +48,8 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.hitTargets.add(target);
-    target.receiveHit({ damage: this.damage, source: this });
+    const damage = target instanceof Bomb ? (this.bombDamage ?? this.damage) : this.damage;
+    target.receiveHit({ damage, source: this });
     this.remainingHits -= 1;
     if (this.remainingHits <= 0) this.deactivate();
     return true;

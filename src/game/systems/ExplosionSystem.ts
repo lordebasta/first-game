@@ -3,7 +3,7 @@ import { Enemy } from "../entities/Enemy";
 import type { Hit } from "../combat/Hit";
 import { showExplosion } from "../graphics/showExplosion";
 
-/** Resolves area damage against the registered combat group. */
+/** Resolves area damage against active enemies discovered in the physics world. */
 export class ExplosionSystem {
   constructor(private readonly scene: Phaser.Scene) {}
 
@@ -11,12 +11,11 @@ export class ExplosionSystem {
     position: Phaser.Math.Vector2,
     radius: number,
     hit: Hit,
-    targets: Phaser.Physics.Arcade.Group,
     directTarget: Enemy,
   ): void {
-    for (const target of targets.getChildren()) {
-      if (target instanceof Enemy && target.active && target !== directTarget
-        && Phaser.Math.Distance.Between(position.x, position.y, target.x, target.y) <= radius) {
+    for (const body of this.scene.physics.overlapCirc(position.x, position.y, radius)) {
+      const target = body.gameObject;
+      if (target instanceof Enemy && target.active && target !== directTarget) {
         target.receiveHit(hit);
       }
     }

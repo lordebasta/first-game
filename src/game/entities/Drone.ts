@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../constants";
 import { Enemy } from "./Enemy";
+import { Bomb } from "./Bomb";
 import { PlayerWeapon } from "../systems/PlayerWeapon";
 import { playLaserSound } from "../audio/SoundEffects";
 
@@ -11,15 +12,15 @@ const TARGET_CANDIDATE_COUNT = 3;
 
 export interface DroneUpdateOptions {
   laser: boolean;
-  priority: "lowest" | "strongest";
   fireRateMultiplier: number;
+  bombHunter: boolean;
+  reservedBombs: Set<Bomb>;
 }
 
 /** Autonomous support unit created by a Drone Factory. It has no physics body. */
 export class Drone extends Phaser.GameObjects.Container {
   private nextShotAt = 0;
   private target?: Enemy;
-  private targetPriority?: DroneUpdateOptions["priority"];
 
   constructor(scene: Phaser.Scene, x: number, private readonly weapon: PlayerWeapon) {
     const body = scene.add.circle(0, 0, 13, COLORS.accent).setStrokeStyle(2, COLORS.player);
@@ -30,16 +31,21 @@ export class Drone extends Phaser.GameObjects.Container {
 
   update(time: number, enemies: readonly Enemy[], options: DroneUpdateOptions): void {
     const targetableEnemies = enemies.filter((enemy) => enemy.canBeTargetedAutomatically());
+    const targetClaimedByAnotherDrone = this.target instanceof Bomb && options.reservedBombs.has(this.target);
+    const mustSwitchToBomb = options.bombHunter
+      && !(this.target instanceof Bomb)
+      && targetableEnemies.some((enemy) => enemy instanceof Bomb && !options.reservedBombs.has(enemy));
     if (!this.target?.canBeTargetedAutomatically()
       || !targetableEnemies.includes(this.target)
-      || this.targetPriority !== options.priority) {
-      this.target = this.chooseTarget(targetableEnemies, options.priority);
-      this.targetPriority = options.priority;
+      || targetClaimedByAnotherDrone
+      || mustSwitchToBomb) {
+      this.target = this.chooseTarget(targetableEnemies, options.bombHunter, options.reservedBombs);
     }
     const target = this.target;
     if (!target) {
       return;
     }
+    if (target instanceof Bomb) options.reservedBombs.add(target);
 
     const distance = target.x - this.x;
     this.x += Math.sign(distance) * Math.min(Math.abs(distance), MOVE_SPEED / 60);
@@ -47,7 +53,7 @@ export class Drone extends Phaser.GameObjects.Container {
       return;
     }
     if (options.laser) {
-      target.receiveHit({ damage: 1, source: this });
+      target.receiveHit({ damage: options.bombHunter && target instanceof Bomb ? 100 : 1, source: this });
       playLaserSound(this.scene);
       const beam = this.scene.add.line(0, 0, this.x, this.y - 18, target.x, target.y, 0x9fe7ff, 0.9)
         .setOrigin(0)
@@ -57,17 +63,26 @@ export class Drone extends Phaser.GameObjects.Container {
       this.weapon.fireFrom(time, new Phaser.Math.Vector2(this.x, this.y - 18), 0, {
         tint: 0x9fe7ff,
         scale: 0.78,
+        bombDamage: options.bombHunter ? 100 : undefined,
       });
     }
     this.nextShotAt = time + SHOT_INTERVAL_MS * options.fireRateMultiplier;
     this.target = undefined;
   }
 
-  private chooseTarget(enemies: readonly Enemy[], priority: DroneUpdateOptions["priority"]): Enemy | undefined {
+  private chooseTarget(
+    enemies: readonly Enemy[],
+    prioritizeBombs: boolean,
+    reservedBombs: ReadonlySet<Bomb>,
+  ): Enemy | undefined {
+    if (prioritizeBombs) {
+      const closestBomb = enemies
+        .filter((enemy): enemy is Bomb => enemy instanceof Bomb && !reservedBombs.has(enemy))
+        .sort((first, second) => second.y - first.y)[0];
+      if (closestBomb) return closestBomb;
+    }
     const candidates = [...enemies]
-      .sort(priority === "strongest"
-        ? (first, second) => second.getHealth() - first.getHealth() || second.y - first.y
-        : (first, second) => second.y - first.y)
+      .sort((first, second) => second.y - first.y)
       .slice(0, TARGET_CANDIDATE_COUNT);
     return candidates.length > 0 ? Phaser.Utils.Array.GetRandom(candidates) : undefined;
   }

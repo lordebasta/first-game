@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { GAME_WIDTH } from "../constants";
-import { Enemy, MAX_COLOR_CODED_HEALTH, type EnemyDefinition } from "./Enemy";
+import { Enemy, type EnemyDefinition } from "./Enemy";
 import { Bomb } from "./Bomb";
 
-const BOMBER_DEFINITION: EnemyDefinition = { texture: "bomber", health: MAX_COLOR_CODED_HEALTH };
+const BOMBER_DEFINITION: EnemyDefinition = { texture: "bomber", health: 5 };
 const HORIZONTAL_SPEED = 82;
 const SIDE_MARGIN = 58;
 const FIRST_DROP_DELAY_MS = 1_300;

@@ -51,7 +51,7 @@ Fra due ondate c'e una pausa breve e le strutture danneggiate ma non distrutte r
 │                                             │
 │                 giocatore                    │
 │                                             │
-│ [ slot ] [ slot ] [ slot ] [ slot ]         │
+│       [ slot ] [ slot ] [ slot ]             │
 │                   nucleo                     │
 └─────────────────────────────────────────────┘
 ```
@@ -62,7 +62,7 @@ Il nucleo ha **una sola vita**. Se un invasore supera uno slot vuoto o una strut
 
 ## Strutture
 
-L'avamposto ha una fila di **quattro slot**. Ogni struttura ha due punti integrita: il primo invasore che la raggiunge la danneggia e viene distrutto; il secondo la distrugge e lascia lo slot vuoto. Durante una pausa, una struttura danneggiata recupera il danno; una struttura distrutta non torna automaticamente.
+L'avamposto ha una fila di **tre slot**. Ogni struttura ha due punti integrita: il primo invasore che la raggiunge la danneggia e viene distrutto; il secondo la distrugge e lascia lo slot vuoto. Durante una pausa, una struttura danneggiata recupera il danno; una struttura distrutta non torna automaticamente.
 
 - **Muro:** struttura base sempre disponibile; occupa uno slot, estende una linea difensiva per tutta la larghezza del campo e assorbe due invasori senza altri effetti.
 - **Centrale** *(comune, unica)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
@@ -77,11 +77,12 @@ La scelta e sempre locale e rapida: riempire uno slot con un muro o aggiungere u
 
 Il gioco inizia con Scout fragili e rapidi. Dall'ondata 6 entra l'infantry,
 piu resistente. La difficolta cresce gradualmente: il comportamento resta
-chiaro e il giocatore impara a proteggere i quattro slot.
+chiaro e il giocatore impara a proteggere i tre slot.
 
 - **Invasore base:** scende verso la base; piu a lungo dura la run, piu rapidamente scende. Quando raggiunge una struttura, la danneggia e viene distrutto.
 - **Comandante:** appare ogni alcune ondate e aumenta temporaneamente la velocita di discesa della formazione finche resta vivo.
 - **Bombardiere:** appare ogni alcune ondate e, a intervalli, lancia una bomba che scende lentamente in linea retta verso la base. Il giocatore deve colpirla prima che raggiunga le strutture.
+- **Tank:** entra dall'ondata 16 nella prima linea della formazione. Ha otto punti integrita, non possiede corazza e usa colori aggiuntivi per comunicare tutta la vita residua.
 
 Quando una bomba viene colpita, esplode e danneggia gli invasori adiacenti. Spararle e quindi sia una difesa urgente sia un'opportunita tattica per liberare spazio davanti alla base.
 
@@ -110,9 +111,9 @@ La difficolta cresce in passaggi leggibili:
 2. Aumenta lentamente il numero di invasori per formazione.
 3. Compare il comandante.
 4. Compare il bombardiere e il giocatore deve scegliere se sparare agli invasori o alla bomba.
-5. Le formazioni mescolano invasori base, comandante e bombardiere.
+5. Compaiono i Tank corazzati in prima linea e le formazioni mescolano invasori base, comandante e bombardiere.
 
-Velocita e numero di minacce devono avere un limite pratico. Verso l'ondata 30 la difficolta deriva dal proteggere i quattro slot e dal decidere le strutture, non da uno schermo illeggibile.
+Velocita e numero di minacce devono avere un limite pratico. Verso l'ondata 30 la difficolta deriva dal proteggere i tre slot e dal decidere le strutture, non da uno schermo illeggibile.
 
 ## Prima versione giocabile
 
@@ -121,7 +122,7 @@ La prima build deve dimostrare che sparare, proteggere il nucleo e superare onda
 - movimento orizzontale e fuoco;
 - un tipo di invasore in formazione;
 - nucleo con una sola vita;
-- quattro slot struttura e muro come unica struttura iniziale;
+- tre slot struttura e muro come unica struttura iniziale;
 - indicatore dell'ondata corrente su trenta;
 - le prime cinque ondate definite in `docs/levels.md`;
 - schermata game over con l'ondata raggiunta e schermata vittoria dopo l'ondata 30.
@@ -133,7 +134,7 @@ Solo dopo che questa versione funziona conviene aggiungere la pausa, le scelte f
 | Periodo | Risultato |
 |---|---|
 | Settimana 1 | Movimento, sparo, formazione aliena, collisioni e indicatore ondata |
-| Settimana 2 | Nucleo con una vita, quattro slot, muri, danni e game over |
+| Settimana 2 | Nucleo con una vita, tre slot, muri, danni e game over |
 | Settimana 3 | Prime cinque ondate e ritmo della velocita di discesa |
 | Settimana 4 | Pausa, riparazione e scelta fra tre strutture |
 | Settimane 5-6 | Comandante, bombardiere, esplosione delle bombe, effetti e suono |

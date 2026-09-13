@@ -69,7 +69,7 @@ potenza di fuoco senza rendere obbligatoria una build da fuoco rapido.
 | Carta | Effetto |
 | --- | --- |
 | Reattore sovralimentato | Aumenta ulteriormente la velocita di movimento. |
-| Celle di riserva | Aumenta la velocita dei proiettili del player. |
+| Onda di forza | Ogni 10 secondi rallenta del 50% tutti i nemici presenti per 2,5 secondi. |
 | Rete energetica | Tutte le strutture automatiche sparano piu spesso, indipendentemente dallo slot. |
 forse: Il giocatore spara colpi istantanei laser? 
 
@@ -77,7 +77,7 @@ forse: Il giocatore spara colpi istantanei laser?
 
 I droni possono essere trasformati in una fonte di danno istantaneo: il laser
 non e un proiettile, quindi non ha una velocita da potenziare. Le carte
-premiano copertura, danno e scelta consapevole della priorita.
+premiano copertura, danno e difesa dalle bombe.
 
 | Carta | Effetto |
 | --- | --- |
@@ -85,7 +85,7 @@ premiano copertura, danno e scelta consapevole della priorita.
 | Laser istantaneo | Il drone sostituisce il colpo normale con un laser istantaneo. |
 | DOPO: Laser focalizzato | Il laser infligge danno aggiuntivo. |
 | DOPO: Raffreddamento efficiente | Riduce l'intervallo fra i laser. |
-| Puntamento prioritario | Compare un comando per scegliere la priorita: nemico piu vicino alla base o nemico con piu vita. |
+| Cacciabombe | Da priorita assoluta alle bombe e permette a ogni colpo dei droni di distruggerle immediatamente. Droni diversi non puntano la stessa bomba. |
 | DOPO: Laser perforante | Il laser attraversa il bersaglio e colpisce un altro invasore allineato. |
 
 ### Torretta
@@ -182,8 +182,8 @@ controllo del bersaglio e trasformazione del fuoco.
 3. Implementare prima le carte semplici e numeriche di Torretta, Centrale,
    Muro e Deposito.
 4. Implementare il Radar completo, poi le carte che dipendono dalla marcatura.
-5. Implementare il laser istantaneo dei droni prima delle carte di danno,
-   perforazione e priorita del bersaglio.
+5. Implementare il laser istantaneo dei droni prima delle carte di danno e
+   perforazione.
 6. Introdurre le carte sinergia soltanto dopo che ogni struttura possiede uno
    stato di carte affidabile e puo essere scelta come bersaglio di un effetto.
 

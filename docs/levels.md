@@ -5,7 +5,7 @@ ancora integro dopo l'ondata 30. Non esistono punteggio, combo o classifica.
 La misura del risultato e l'ondata raggiunta.
 
 La vertical slice corrente si conclude con una schermata di vittoria dopo
-l'ondata 10; le ondate 11-30 restano la struttura prevista per la campagna completa.
+l'ondata 20; le ondate 21-30 restano la struttura prevista per la campagna completa.
 
 Ogni ondata e una singola formazione. Fra un'ondata e la successiva c'e una
 pausa breve durante la quale le strutture danneggiate recuperano un punto
@@ -45,10 +45,15 @@ si chiude sull'asse X in 180 ms e si riapre in 220 ms nella nuova posizione.
 La discesa continua anche durante l'animazione.
 
 Il colore di ogni nemico indica la vita residua: rosso = 1, viola = 2,
-blu = 3, giallo = 4. Il colore cambia dopo un colpo. Il Radar segnala la
-marcatura con trasparenza, senza sostituire il colore della vita.
+blu = 3, giallo = 4, verde = 5, ciano = 6, arancione = 7 e bianco = 8 o piu.
+Il colore cambia dopo un colpo. Il Radar segnala la marcatura con trasparenza,
+senza sostituire il colore della vita.
 
 ## Progressione prevista
+
+Il **Tank** ha otto punti integrita, senza corazza o riduzioni del danno. Usa
+la palette estesa dei colori della vita e cambia colore dopo ogni colpo. Marcia
+nella formazione e occupa la linea piu vicina alla base.
 
 - 6-9: Scout e Infantry. Il numero di Infantry e triplicato rispetto alle
   formazioni iniziali, la velocita sale da 1,35x a 2x e compaiono gradualmente
@@ -63,6 +68,10 @@ marcatura con trasparenza, senza sostituire il colore della vita.
   rimasti devono essere eliminati per vincere.
 - 11: insieme a Infantry e Bombardiere compare una sola Preda dorata. Attraversa lo schermo una volta e fugge; se viene distrutta, permette di sostituire una struttura e scegliere per quella nuova tanti upgrade quanti ne aveva la struttura originaria. La vecchia struttura e i suoi upgrade vengono rimossi dalla run.
 - 12-15: Infantry, Bombardieri e alcuni Scout; ondata 15 mini-boss.
-- 16-20: Infantry, Tank in prima linea e Bombardieri; ondata 20 mini-boss.
+- 16: tre Tank introducono la corazza davanti a dodici Infantry, senza altre distrazioni.
+- 17: quattro Tank, dodici Infantry e sei Scout scaglionati verificano la priorita dei bersagli.
+- 18: tre Tank, quattordici Infantry e un Bombardiere introducono la sinergia fra esplosioni e corazza.
+- 19: cinque Tank, dodici Infantry, due Bombardieri e sei Scout combinano tutte le minacce dell'arco.
+- 20: il Maresciallo da guerra guida diciotto Infantry, quattro Tank e un Bombardiere. Finche e vivo ogni discesa della formazione e aumentata del 40%; a meta integrita chiama due Tank aggiuntivi.
 - 21-25: da definire; ondata 25 mini-boss.
 - 26-30: da definire; ondata 30 e scontro finale.

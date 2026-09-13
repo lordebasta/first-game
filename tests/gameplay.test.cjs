@@ -70,6 +70,8 @@ const { SiegeBomberBoss } = load('src/game/entities/SiegeBomberBoss.ts');
 const { Bomber } = load('src/game/entities/Bomber.ts');
 const { GoldenRaider } = load('src/game/entities/GoldenRaider.ts');
 const { Bomb } = load('src/game/entities/Bomb.ts');
+const { Tank } = load('src/game/entities/Tank.ts');
+const { WarMarshal } = load('src/game/entities/WarMarshal.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
 const { Drone } = load('src/game/entities/Drone.ts');
@@ -102,9 +104,9 @@ test('every selectable structure is unique for the current build', () => {
   }
 });
 
-test('the campaign authors fifteen waves with a progressive bomber arc', () => {
-  assert.equal(LAST_LEVEL, 15);
-  assert.equal(WAVES.length, 15);
+test('the campaign authors twenty waves with progressive bomber and armored arcs', () => {
+  assert.equal(LAST_LEVEL, 20);
+  assert.equal(WAVES.length, 20);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'carrier-boss').length, 1);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
   assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
@@ -126,6 +128,52 @@ test('the campaign authors fifteen waves with a progressive bomber arc', () => {
   assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
   assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'scout')));
   assert.equal(WAVES[14].enemies.filter((enemy) => enemy.kind === 'siege-bomber-boss').length, 1);
+  assert.deepEqual(WAVES.slice(15, 19).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'tank').length), [3, 4, 3, 5]);
+  assert.equal(WAVES[17].enemies.filter((enemy) => enemy.kind === 'bomber').length, 1);
+  assert.equal(WAVES[18].enemies.filter((enemy) => enemy.kind === 'bomber').length, 2);
+  assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'war-marshal').length, 1);
+  assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'tank').length, 4);
+  assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
+  assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'bomber').length, 1);
+});
+
+test('tanks use the extended health color system without armor', () => {
+  const tank = new Tank({});
+  tank.spawn(100, 100);
+  assert.equal(tank.getHealth(), 8);
+  assert.equal(tank.tint, 0xe8f7ff);
+  tank.receiveHit({ damage: 1, source: {} });
+  assert.equal(tank.getHealth(), 7);
+  assert.equal(tank.tint, 0xff9f43);
+  tank.receiveHit({ damage: 1, source: {} });
+  assert.equal(tank.tint, 0x48d8e8);
+});
+
+test('war marshal deepens formation descents and calls reinforcements once at half health', () => {
+  let calls = 0;
+  const scene = {
+    add: {
+      graphics,
+      circle: () => ({
+        setStrokeStyle() { return this; }, setDepth() { return this; }, destroy() {},
+      }),
+      rectangle(x, y, width) {
+        return {
+          x, y, displayWidth: width,
+          setDepth() { return this; }, setOrigin() { return this; }, setVisible() { return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+        };
+      },
+    },
+    tweens: { add() {} },
+  };
+  const marshal = new WarMarshal(scene, () => { calls += 1; });
+  marshal.spawn(360, 94);
+  marshal.displayHeight = 54;
+  assert.equal(marshal.formationDescentMultiplier(), 1.4);
+  marshal.receiveHit({ damage: 28, source: {} });
+  marshal.receiveHit({ damage: 1, source: {} });
+  assert.equal(calls, 1);
 });
 
 test('carrier boss patrols without descending and drops scouts without an active limit', () => {
@@ -322,6 +370,35 @@ test('power grid boosts automatic structures regardless of slot distance', () =>
   assert.deepEqual(multipliers, [0.75]);
 });
 
+test('power plant force wave slows every active enemy for 2.5 seconds', () => {
+  const first = new Infantry({}), second = new Bomb({});
+  first.spawn(100, 100);
+  second.spawn(200, 100);
+  const powerPlant = Object.create(PowerPlant.prototype);
+  powerPlant.definition = PowerPlant.definition;
+  powerPlant.upgradeDefinitions = POWER_PLANT_UPGRADES;
+  powerPlant.upgrades = new Set(['force-wave']);
+  powerPlant.nextForceWaveAt = 5_000;
+  powerPlant.x = 360;
+  powerPlant.y = 625;
+  powerPlant.scene = {
+    data: { get: () => ({ getChildren: () => [first, second] }) },
+    add: {
+      circle: () => ({
+        setStrokeStyle() { return this; }, setDepth() { return this; }, destroy() {},
+      }),
+    },
+    tweens: { add() {} },
+  };
+
+  powerPlant.update(5_000);
+
+  assert.equal(first.movementSpeedMultiplier(7_499), 0.5);
+  assert.equal(second.movementSpeedMultiplier(7_499), 0.5);
+  assert.equal(first.movementSpeedMultiplier(7_500), 1);
+  assert.equal(powerPlant.nextForceWaveAt, 15_000);
+});
+
 test('uniform spawning preserves type defaults, health colors and reuse resets', () => {
   for (const [Type, health] of [[Scout, 1], [ScoutVeteran, 4], [Infantry, 1]]) {
     const enemy = new Type({});
@@ -340,7 +417,7 @@ test('uniform spawning preserves type defaults, health colors and reuse resets',
   }
 });
 
-test('bombers use the maximum health represented by the five-color palette', () => {
+test('bombers retain five health after extending the color palette for tanks', () => {
   const bomber = new Bomber({}, { getChildren: () => [], add() {} });
   bomber.spawn(100, 100);
   assert.equal(bomber.getHealth(), 5);
@@ -380,7 +457,7 @@ test('Scout and veteran keep their own descent speed and inherited oscillation',
   }
 });
 
-test('drones randomize among the three best targets for the selected priority', () => {
+test('drones randomize among the three enemies closest to the base', () => {
   const drone = Object.create(Drone.prototype);
   const enemies = [
     { y: 100, getHealth: () => 4 },
@@ -391,11 +468,34 @@ test('drones randomize among the three best targets for the selected priority', 
   const getRandom = phaser.Utils.Array.GetRandom;
   phaser.Utils.Array.GetRandom = (candidates) => candidates[1];
   try {
-    assert.equal(drone.chooseTarget(enemies, 'lowest'), enemies[2]);
-    assert.equal(drone.chooseTarget(enemies, 'strongest'), enemies[2]);
+    assert.equal(drone.chooseTarget(enemies, false, new Set()), enemies[2]);
   } finally {
     phaser.Utils.Array.GetRandom = getRandom;
   }
+});
+
+test('bomb-hunter drones always prioritize the bomb closest to the base', () => {
+  const drone = Object.create(Drone.prototype);
+  const lowestEnemy = new Infantry({});
+  lowestEnemy.spawn(100, 500);
+  const highBomb = new Bomb({});
+  highBomb.spawn(100, 120);
+  const lowBomb = new Bomb({});
+  lowBomb.spawn(100, 240);
+
+  assert.equal(drone.chooseTarget([lowestEnemy, highBomb, lowBomb], true, new Set()), lowBomb);
+  assert.equal(drone.chooseTarget([lowestEnemy, highBomb, lowBomb], true, new Set([lowBomb])), highBomb);
+  assert.equal(drone.chooseTarget([lowestEnemy, highBomb, lowBomb], true, new Set([highBomb, lowBomb])), lowestEnemy);
+  drone.x = 0;
+  drone.target = lowestEnemy;
+  drone.nextShotAt = 1_000;
+  drone.update(0, [lowestEnemy, highBomb, lowBomb], {
+    laser: false,
+    fireRateMultiplier: 1,
+    bombHunter: true,
+    reservedBombs: new Set(),
+  });
+  assert.equal(drone.target, lowBomb);
 });
 
 test('veteran closes, teleports and reopens while continuing its descent', () => {
@@ -594,8 +694,14 @@ test('slot placement rejects a second copy of a unique structure', () => {
 
 test('combat applies direct and area damage once, supports piercing and resets pooled shots', () => {
   let overlap;
+  const physicsTargets = [];
   const scene = {
-    physics: { add: { overlap: (_a, _b, callback) => { overlap = callback; } } },
+    physics: {
+      add: { overlap: (_a, _b, callback) => { overlap = callback; } },
+      overlapCirc: (x, y, radius) => physicsTargets
+        .filter((target) => target.active && Math.hypot(target.x - x, target.y - y) <= radius)
+        .map((gameObject) => ({ gameObject })),
+    },
     add: {
       circle: () => ({ destroy() {} }),
       rectangle: () => ({ angle: 0, setRotation() { return this; }, destroy() {} }),
@@ -609,6 +715,7 @@ test('combat applies direct and area damage once, supports piercing and resets p
   };
   const direct = target(0), nearby = target(60), far = target(100), inactive = target(10);
   inactive.active = false;
+  physicsTargets.push(direct, nearby, far, inactive);
   const projectile = new Projectile(scene);
   projectile.launch(0, 0, 0, { damage: 2, explosionRadius: 65, pierce: 1 });
   new CombatSystem(scene, () => {}).registerProjectileHits({}, { getChildren: () => [direct, nearby, far, inactive] });
@@ -624,4 +731,76 @@ test('combat applies direct and area damage once, supports piercing and resets p
   overlap(projectile, direct);
   assert.equal(direct.getHealth(), 1);
   assert.equal(projectile.active, false);
+});
+
+test('destroyed bombs deal area damage to nearby tanks', () => {
+  let overlap;
+  const physicsTargets = [];
+  const scene = {
+    physics: {
+      add: { overlap: (_a, _b, callback) => { overlap = callback; } },
+      overlapCirc: (x, y, radius) => physicsTargets
+        .filter((target) => target.active && Math.hypot(target.x - x, target.y - y) <= radius)
+        .map((gameObject) => ({ gameObject })),
+    },
+    add: {
+      circle: () => ({ destroy() {} }),
+      rectangle: () => ({ angle: 0, setRotation() { return this; }, destroy() {} }),
+    },
+    tweens: { add() {} },
+  };
+  let bomb;
+  let tank;
+  const group = { getChildren: () => [bomb, tank] };
+  scene.data = { get: () => group };
+  bomb = new Bomb(scene);
+  bomb.spawn(100, 100);
+  tank = new Tank(scene);
+  tank.spawn(160, 100);
+  physicsTargets.push(bomb, tank);
+  const projectile = new Projectile(scene);
+  projectile.launch(100, 100, 0, { damage: 3 });
+  new CombatSystem(scene, () => {}).registerProjectileHits({}, group);
+
+  overlap(projectile, bomb);
+
+  assert.equal(bomb.active, false);
+  assert.equal(tank.getHealth(), 6);
+});
+
+test('bomb-hunter attacks use 100 bomb damage without increasing normal damage', () => {
+  const targets = [];
+  const scene = {
+    physics: {
+      overlapCirc: (x, y, radius) => targets
+        .filter((target) => target.active && Math.hypot(target.x - x, target.y - y) <= radius)
+        .map((gameObject) => ({ gameObject })),
+    },
+    add: {
+      circle: () => ({ destroy() {} }),
+      rectangle: () => ({ angle: 0, setRotation() { return this; }, destroy() {} }),
+    },
+    tweens: { add() {} },
+  };
+  const bomb = new Bomb(scene);
+  bomb.spawn(100, 100, { health: 5 });
+  targets.push(bomb);
+  bomb.receiveHit({ damage: 100, source: {} });
+  assert.equal(bomb.active, false);
+
+  const projectile = new Projectile(scene);
+  const infantry = new Infantry({});
+  infantry.spawn(100, 100, { health: 4 });
+  targets.push(infantry);
+  projectile.launch(100, 100, 0, { damage: 1, bombDamage: 100 });
+  projectile.hit(infantry);
+  assert.equal(infantry.getHealth(), 3);
+
+  const secondBomb = new Bomb(scene);
+  secondBomb.spawn(100, 100, { health: 5 });
+  targets.push(secondBomb);
+  const secondProjectile = new Projectile(scene);
+  secondProjectile.launch(100, 100, 0, { damage: 1, bombDamage: 100 });
+  secondProjectile.hit(secondBomb);
+  assert.equal(secondBomb.active, false);
 });

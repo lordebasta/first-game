@@ -34,7 +34,7 @@ export class CombatSystem {
 
       if (projectile.explosionRadius > 0) {
         this.explosions.explode(position, projectile.explosionRadius,
-          { damage: projectile.damage, source: projectile }, hittables, target);
+          { damage: projectile.damage, source: projectile }, target);
       }
 
       this.onProjectileImpact({ projectile, target, position });
