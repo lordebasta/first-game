@@ -6,6 +6,7 @@ import { Scout } from "../entities/Scout";
 import { ScoutVeteran } from "../entities/ScoutVeteran";
 import { CarrierBoss } from "../entities/CarrierBoss";
 import { Bomber } from "../entities/Bomber";
+import { GoldenRaider } from "../entities/GoldenRaider";
 import { SiegeBomberBoss } from "../entities/SiegeBomberBoss";
 import { getWaveDefinition, LAST_LEVEL, type EnemyKind, type WaveEnemy } from "./WaveDefinitions";
 
@@ -42,6 +43,7 @@ export class EnemySpawner {
     private readonly scene: Phaser.Scene,
     private readonly onWaveCleared: (completedWave: number) => void,
     private readonly onCampaignComplete: () => void,
+    private readonly onGoldenRaiderDestroyed: () => void,
   ) {
     this.group = scene.physics.add.group();
   }
@@ -234,6 +236,8 @@ export class EnemySpawner {
         return enemy instanceof CarrierBoss;
       case "bomber":
         return enemy instanceof Bomber;
+      case "golden-raider":
+        return enemy instanceof GoldenRaider;
       case "siege-bomber-boss":
         return enemy instanceof SiegeBomberBoss;
     }
@@ -251,6 +255,8 @@ export class EnemySpawner {
         return new CarrierBoss(this.scene, this.group);
       case "bomber":
         return new Bomber(this.scene, this.group);
+      case "golden-raider":
+        return new GoldenRaider(this.scene, this.onGoldenRaiderDestroyed);
       case "siege-bomber-boss":
         return new SiegeBomberBoss(this.scene, this.group);
     }

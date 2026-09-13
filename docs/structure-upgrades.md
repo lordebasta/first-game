@@ -70,7 +70,7 @@ potenza di fuoco senza rendere obbligatoria una build da fuoco rapido.
 | --- | --- |
 | Reattore sovralimentato | Aumenta ulteriormente la velocita di movimento. |
 | Celle di riserva | Aumenta la velocita dei proiettili del player. |
-| Rete energetica | Le strutture automatiche negli slot adiacenti sparano piu spesso. |
+| Rete energetica | Tutte le strutture automatiche sparano piu spesso, indipendentemente dallo slot. |
 forse: Il giocatore spara colpi istantanei laser? 
 
 ### Fabbrica droni
@@ -115,7 +115,7 @@ e di punteggio.
 | --- | --- |
 | Doppia scansione | Marca anche il secondo nemico con piu vita. |
 | Punto debole esposto | Il bonus al danno contro i nemici marcati passa da +1 a +2. |
-| Aggancio persistente | La marcatura resta sul bersaglio anche se un altro nemico supera la sua vita. |
+| Aggancio persistente | Il Radar continua a seguire i bersagli piu resistenti, ma quelli precedenti conservano una copia della marcatura finche restano vivi. |
 | DOPO: Allarme bombardiere | Tutte le bombe del bombaridere sono marcate |
 | DOPO: Catena di dati | Eliminare un bersaglio marcato marca un nemico vicino. |
 

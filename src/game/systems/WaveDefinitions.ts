@@ -1,4 +1,4 @@
-export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "siege-bomber-boss";
+export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "golden-raider" | "siege-bomber-boss";
 import type { EnemyHealth } from "../entities/Enemy";
 
 export interface WaveEnemy {
@@ -109,6 +109,7 @@ export const WAVES: readonly WaveDefinition[] = [
     rows: 3,
     speedMultiplier: 1.8,
     enemies: [
+      { kind: "golden-raider", column: 0, row: 1 },
       { kind: "bomber", column: 2.5, row: 0 },
       ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(4), column: index % 6, row: 1 + Math.floor(index / 6) })),
     ],

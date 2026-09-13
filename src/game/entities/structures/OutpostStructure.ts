@@ -102,8 +102,8 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     });
   }
 
-  /** Hook used by adjacent Power Plants; only automatic structures override it. */
-  setAdjacentFireRateMultiplier(_multiplier: number): void {}
+  /** Hook used by the Power Plant's grid; only automatic structures override it. */
+  setAutomaticFireRateMultiplier(_multiplier: number): void {}
 
   protected onInstall(): void {}
 

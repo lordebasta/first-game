@@ -25,14 +25,14 @@ export class DroneFactory extends OutpostStructure {
   private readonly drones: Drone[] = [];
   private priority: "lowest" | "strongest" = "lowest";
   private priorityButton?: Phaser.GameObjects.Text;
-  private adjacentFireRateMultiplier = 1;
+  private automaticFireRateMultiplier = 1;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, DroneFactory.definition, DRONE_FACTORY_UPGRADES);
   }
 
-  override setAdjacentFireRateMultiplier(multiplier: number): void {
-    this.adjacentFireRateMultiplier = multiplier;
+  override setAutomaticFireRateMultiplier(multiplier: number): void {
+    this.automaticFireRateMultiplier = multiplier;
   }
 
   protected override onInstall(): void {
@@ -47,7 +47,7 @@ export class DroneFactory extends OutpostStructure {
       drone.update(time, enemies, {
         laser: this.hasUpgrade("instant-laser"),
         priority: this.priority,
-        fireRateMultiplier: this.adjacentFireRateMultiplier,
+        fireRateMultiplier: this.automaticFireRateMultiplier,
       });
     }
   }

@@ -46,6 +46,26 @@ export class StructureSlots {
     return [...this.structures];
   }
 
+  getUpgradeCount(kind: StructureKind): number {
+    return this.structureUpgrades.get(kind)?.size ?? 0;
+  }
+
+  replace(slot: number, StructureClass: StructureConstructor): boolean {
+    const previous = this.structures[slot];
+    if (!previous || previous.definition.kind === StructureClass.definition.kind) return false;
+    if (StructureClass.definition.unique && this.structures.some(
+      (structure, index) => index !== slot && structure?.definition.kind === StructureClass.definition.kind,
+    )) return false;
+    const previousKind = previous.definition.kind;
+    previous.uninstall();
+    this.structures[slot] = undefined;
+    if (!this.structures.some((structure) => structure?.definition.kind === previousKind)) {
+      this.structureUpgrades.delete(previousKind);
+    }
+    this.place(slot, StructureClass);
+    return this.getStructures()[slot]?.definition.kind === StructureClass.definition.kind;
+  }
+
   hasUpgrade(kind: StructureKind, upgradeId: string): boolean {
     return this.structureUpgrades.get(kind)?.has(upgradeId) ?? false;
   }

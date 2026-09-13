@@ -8,14 +8,14 @@ import type { StructureSlots } from "../../systems/StructureSlots";
 export const POWER_PLANT_UPGRADES = [
   { id: "overcharged", name: "REATTORE SOVRALIMENTATO", description: "+20% velocita di movimento" },
   { id: "reserve-cells", name: "CELLE DI RISERVA", description: "+40% velocita dei proiettili del player" },
-  { id: "power-grid", name: "RETE ENERGETICA", description: "+33% cadenza per le strutture adiacenti" },
+  { id: "power-grid", name: "RETE ENERGETICA", description: "+33% cadenza per tutte le strutture automatiche" },
 ] as const satisfies readonly StructureUpgrade[];
 
 const BASE_MOVEMENT_BONUS = 0.2;
 const BASE_COOLDOWN_REDUCTION = 0.2;
 const OVERCHARGE_MOVEMENT_BONUS = 0.2;
 const PROJECTILE_SPEED_BONUS = 0.4;
-const ADJACENT_FIRE_RATE_MULTIPLIER = 0.75;
+const GRID_FIRE_RATE_MULTIPLIER = 0.75;
 
 export class PowerPlant extends OutpostStructure {
   static readonly definition = {
@@ -42,11 +42,11 @@ export class PowerPlant extends OutpostStructure {
       this.player.changeMovementMultiplier(-OVERCHARGE_MOVEMENT_BONUS);
     }
     if (this.hasUpgrade("reserve-cells")) this.weapon.changeProjectileSpeedMultiplier(-PROJECTILE_SPEED_BONUS);
-    this.setNeighboursFireRate(1);
+    this.setStructuresFireRate(1);
   }
 
   protected override onUpdate(_time: number): void {
-    if (this.hasUpgrade("power-grid")) this.setNeighboursFireRate(ADJACENT_FIRE_RATE_MULTIPLIER);
+    if (this.hasUpgrade("power-grid")) this.setStructuresFireRate(GRID_FIRE_RATE_MULTIPLIER);
   }
 
   protected override onUpgradeApplied(id: string): void {
@@ -54,7 +54,7 @@ export class PowerPlant extends OutpostStructure {
       this.player.changeMovementMultiplier(OVERCHARGE_MOVEMENT_BONUS);
     }
     if (id === "reserve-cells") this.weapon.changeProjectileSpeedMultiplier(PROJECTILE_SPEED_BONUS);
-    if (id === "power-grid") this.setNeighboursFireRate(ADJACENT_FIRE_RATE_MULTIPLIER);
+    if (id === "power-grid") this.setStructuresFireRate(GRID_FIRE_RATE_MULTIPLIER);
   }
 
   protected override onUpgradeRemoved(id: string): void {
@@ -62,15 +62,12 @@ export class PowerPlant extends OutpostStructure {
       this.player.changeMovementMultiplier(-OVERCHARGE_MOVEMENT_BONUS);
     }
     if (id === "reserve-cells") this.weapon.changeProjectileSpeedMultiplier(-PROJECTILE_SPEED_BONUS);
-    if (id === "power-grid") this.setNeighboursFireRate(1);
+    if (id === "power-grid") this.setStructuresFireRate(1);
   }
 
-  private setNeighboursFireRate(multiplier: number): void {
+  private setStructuresFireRate(multiplier: number): void {
     const structures = (this.scene.data.get(RUN_DATA.structureSlots) as StructureSlots).getStructures();
-    const ownSlot = structures.indexOf(this);
-    structures.forEach((structure, slot) => {
-      if (structure && Math.abs(slot - ownSlot) === 1) structure.setAdjacentFireRateMultiplier(multiplier);
-    });
+    structures.forEach((structure) => structure?.setAutomaticFireRateMultiplier(multiplier));
   }
 
   private get player(): Player {

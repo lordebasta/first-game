@@ -5,8 +5,8 @@ import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
 
 export const RADAR_UPGRADES = [
   { id: "double-scan", name: "DOPPIA SCANSIONE", description: "Marca anche il secondo nemico piu resistente" },
-  { id: "weak-point", name: "PUNTO DEBOLE ESPOSTO", description: "I bersagli marcati ricevono +1x danno" },
-  { id: "persistent-lock", name: "AGGANCIO PERSISTENTE", description: "Mantiene i bersagli finche restano attivi" },
+  { id: "weak-point", name: "PUNTO DEBOLE ESPOSTO", description: "I bersagli marcati ricevono 1 extra danno aggiuntivo" },
+  { id: "persistent-lock", name: "AGGANCIO PERSISTENTE", description: "I vecchi bersagli restano marcati finche sono vivi" },
 ] as const satisfies readonly StructureUpgrade[];
 // Upgrade rimandati: Allarme bombardiere e Catena di dati.
 
@@ -31,15 +31,13 @@ export class Radar extends OutpostStructure {
       .filter((object): object is Enemy =>
         object instanceof Enemy && object.canBeTargetedAutomatically());
     const count = this.hasUpgrade("double-scan") ? 2 : 1;
-    const retained = this.hasUpgrade("persistent-lock")
-      ? this.markedEnemies.filter((enemy) => enemy.canBeTargetedAutomatically()).slice(0, count)
-      : [];
-    const targets = [...retained];
     const strongest = [...enemies].sort((a, b) =>
       b.getHealth() - a.getHealth() || b.y - a.y);
-    for (const enemy of strongest) {
-      if (targets.length >= count) break;
-      if (!targets.includes(enemy)) targets.push(enemy);
+    const targets = strongest.slice(0, count);
+    if (this.hasUpgrade("persistent-lock")) {
+      for (const enemy of this.markedEnemies) {
+        if (enemy.canBeTargetedAutomatically() && !targets.includes(enemy)) targets.push(enemy);
+      }
     }
     if (targets.length === this.markedEnemies.length && targets.every((target, index) => target === this.markedEnemies[index])) return;
 

@@ -68,6 +68,7 @@ const { ScoutVeteran } = load('src/game/entities/ScoutVeteran.ts');
 const { CarrierBoss } = load('src/game/entities/CarrierBoss.ts');
 const { SiegeBomberBoss } = load('src/game/entities/SiegeBomberBoss.ts');
 const { Bomber } = load('src/game/entities/Bomber.ts');
+const { GoldenRaider } = load('src/game/entities/GoldenRaider.ts');
 const { Bomb } = load('src/game/entities/Bomb.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
@@ -75,6 +76,7 @@ const { Drone } = load('src/game/entities/Drone.ts');
 const { CombatSystem } = load('src/game/systems/CombatSystem.ts');
 const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
+const { StructureReplacementSystem } = load('src/game/systems/StructureReplacementSystem.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
 const { PowerPlant, POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
 const { DroneFactory, DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
@@ -119,6 +121,7 @@ test('the campaign authors fifteen waves with a progressive bomber arc', () => {
     assert.equal(scouts.at(-1).spawnDelayMs, 10_000);
   }
   assert.equal(WAVES[10].enemies.filter((enemy) => enemy.kind === 'bomber').length, 1);
+  assert.equal(WAVES[10].enemies.filter((enemy) => enemy.kind === 'golden-raider').length, 1);
   assert.deepEqual(WAVES.slice(11, 14).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'bomber').length), [1, 2, 2]);
   assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
   assert(WAVES.slice(11, 14).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'scout')));
@@ -258,24 +261,65 @@ test('radar prefers the lowest enemy when health is tied', () => {
   assert.equal(bottom.getHealth(), 2);
 });
 
-test('persistent radar lock stays on its active target when another enemy becomes stronger', () => {
-  const locked = new ScoutVeteran({}), strongerLater = new ScoutVeteran({});
-  locked.spawn(100, 200, { health: 4 });
+test('persistent radar lock moves normally and leaves a mark on its previous target', () => {
+  const previous = new ScoutVeteran({}), strongerLater = new ScoutVeteran({});
+  previous.spawn(100, 200, { health: 4 });
   strongerLater.spawn(200, 100, { health: 3 });
   const radar = Object.create(Radar.prototype);
   radar.definition = Radar.definition;
   radar.upgradeDefinitions = RADAR_UPGRADES;
   radar.upgrades = new Set(['persistent-lock']);
   radar.markedEnemies = [];
-  radar.scene = { data: { get: () => ({ getChildren: () => [locked, strongerLater] }) } };
+  radar.scene = { data: { get: () => ({ getChildren: () => [previous, strongerLater] }) } };
 
   radar.update(0);
-  assert.equal(radar.markedEnemies[0], locked);
-  locked.receiveHit({ damage: 1 });
-  assert(locked.getHealth() < strongerLater.getHealth());
+  assert.deepEqual(radar.markedEnemies, [previous]);
+  previous.receiveHit({ damage: 1 });
+  assert(previous.getHealth() < strongerLater.getHealth());
   radar.update(1);
 
-  assert.equal(radar.markedEnemies[0], locked);
+  assert.deepEqual(radar.markedEnemies, [strongerLater, previous]);
+  previous.receiveHit({ damage: 99 });
+  radar.update(2);
+  assert.deepEqual(radar.markedEnemies, [strongerLater]);
+});
+
+test('persistent radar lock preserves targets released by double scan', () => {
+  const first = new ScoutVeteran({}), second = new ScoutVeteran({}), third = new ScoutVeteran({});
+  first.spawn(100, 100, { health: 5 });
+  second.spawn(200, 200, { health: 4 });
+  third.spawn(300, 300, { health: 3 });
+  const radar = Object.create(Radar.prototype);
+  radar.definition = Radar.definition;
+  radar.upgradeDefinitions = RADAR_UPGRADES;
+  radar.upgrades = new Set(['double-scan', 'persistent-lock']);
+  radar.markedEnemies = [];
+  radar.scene = { data: { get: () => ({ getChildren: () => [first, second, third] }) } };
+
+  radar.update(0);
+  assert.deepEqual(radar.markedEnemies, [first, second]);
+  first.receiveHit({ damage: 2 });
+  radar.update(1);
+
+  assert.deepEqual(radar.markedEnemies, [second, third, first]);
+});
+
+test('power grid boosts automatic structures regardless of slot distance', () => {
+  const multipliers = [];
+  const distantAutomaticStructure = {
+    setAutomaticFireRateMultiplier(multiplier) { multipliers.push(multiplier); },
+  };
+  const powerPlant = Object.create(PowerPlant.prototype);
+  powerPlant.definition = PowerPlant.definition;
+  powerPlant.upgradeDefinitions = POWER_PLANT_UPGRADES;
+  powerPlant.upgrades = new Set(['power-grid']);
+  powerPlant.scene = {
+    data: { get: () => ({ getStructures: () => [powerPlant, undefined, distantAutomaticStructure] }) },
+  };
+
+  powerPlant.update(0);
+
+  assert.deepEqual(multipliers, [0.75]);
 });
 
 test('uniform spawning preserves type defaults, health colors and reuse resets', () => {
@@ -308,6 +352,21 @@ test('bombers use the maximum health represented by the five-color palette', () 
   assert(WAVES.flatMap((wave) => wave.enemies)
     .filter((enemy) => enemy.kind === 'bomber')
     .every((enemy) => enemy.health === undefined || enemy.health <= 5));
+});
+
+test('golden raider grants its reward only when destroyed, not when it escapes', () => {
+  let rewards = 0;
+  const destroyed = new GoldenRaider({}, () => { rewards += 1; });
+  destroyed.spawn(100, 136);
+  destroyed.receiveHit({ damage: 3 });
+  destroyed.receiveHit({ damage: 3 });
+  assert.equal(rewards, 1);
+
+  const escaped = new GoldenRaider({}, () => { rewards += 1; });
+  escaped.spawn(100, 136);
+  escaped.updateMovement(10_000, 10_000);
+  assert.equal(escaped.active, false);
+  assert.equal(rewards, 1);
 });
 
 test('Scout and veteran keep their own descent speed and inherited oscillation', () => {
@@ -434,6 +493,64 @@ test('structure type upgrades are inherited by structures placed later', () => {
   slots.place(1, FakeTurret);
 
   assert.deepEqual(created.map((structure) => structure.applied), [['damage'], ['damage']]);
+});
+
+test('replacement reward preserves the original structure upgrade count', () => {
+  const original = turret();
+  const structures = [original, undefined, undefined];
+  let installed;
+  const slots = {
+    getStructures: () => structures,
+    getUpgradeCount: (kind) => kind === 'turret' ? 2 : 0,
+    replace(slot, StructureClass) {
+      installed = StructureClass;
+      structures[slot] = {
+        definition: StructureClass.definition,
+        getUpgradeDefinitions: () => POWER_PLANT_UPGRADES,
+      };
+      return true;
+    },
+    hasUpgrade: () => false,
+    applyUpgrade() {},
+  };
+  const replacements = new StructureReplacementSystem({}, slots, () => {});
+  const choice = replacements.getStructureChoices(0).find(
+    (candidate) => candidate.StructureClass === PowerPlant,
+  );
+  assert(choice);
+
+  const result = replacements.replace(0, choice.StructureClass);
+
+  assert.equal(installed, PowerPlant);
+  assert.deepEqual(result, { kind: 'power-plant', upgradeChoices: 2 });
+  assert.equal(replacements.getUpgradeChoices('power-plant').length, 3);
+});
+
+test('slot replacement uninstalls the previous structure before installing the next one', () => {
+  const lifecycle = [];
+  class PreviousStructure {
+    constructor() { this.definition = PreviousStructure.definition; }
+    install() { lifecycle.push('old-install'); }
+    uninstall() { lifecycle.push('old-uninstall'); }
+    applyUpgrade() {}
+  }
+  PreviousStructure.definition = { kind: 'turret', name: 'OLD', description: '', color: 0 };
+  class NextStructure {
+    constructor() { this.definition = NextStructure.definition; }
+    install() { lifecycle.push('new-install'); }
+    applyUpgrade() {}
+  }
+  NextStructure.definition = { kind: 'radar', name: 'NEW', description: '', color: 0, unique: true };
+  const slots = Object.create(StructureSlots.prototype);
+  slots.scene = {};
+  slots.structures = [new PreviousStructure(), undefined, undefined];
+  slots.structureUpgrades = new Map([['turret', new Set(['damage'])]]);
+
+  assert.equal(slots.replace(0, NextStructure), true);
+
+  assert.deepEqual(lifecycle, ['old-uninstall', 'new-install']);
+  assert.equal(slots.getStructures()[0].definition.kind, 'radar');
+  assert.equal(slots.getUpgradeCount('turret'), 0);
 });
 
 test('structure cards only target empty slots', () => {

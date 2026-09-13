@@ -16,6 +16,7 @@ import { BackgroundMusic } from "../audio/BackgroundMusic";
 import { PauseView } from "../ui/PauseView";
 import { DevStructureView } from "../ui/DevStructureView";
 import { DevWaveView } from "../ui/DevWaveView";
+import { StructureReplacementSystem } from "../systems/StructureReplacementSystem";
 
 const PLAYER_Y = 580;
 const CORE_Y = 678;
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private combat!: CombatSystem;
   private structureSlots!: StructureSlots;
   private outpostCards!: OutpostCardSystem;
+  private structureReplacement!: StructureReplacementSystem;
   private structureChoice?: StructureChoiceView;
   private pauseView?: PauseView;
   private devStructureView?: DevStructureView;
@@ -69,6 +71,7 @@ export class GameScene extends Phaser.Scene {
       this,
       (wave) => this.handleWaveCleared(wave),
       () => this.endGame(true),
+      () => this.structureReplacement.open(),
     );
     this.combat = new CombatSystem(this, (impact) => this.handleProjectileImpact(impact));
     this.combat.registerProjectileHits(this.player.weapon.projectiles, this.enemySpawner.group);
@@ -81,6 +84,11 @@ export class GameScene extends Phaser.Scene {
     });
     this.structureSlots = new StructureSlots(this);
     this.outpostCards = new OutpostCardSystem(this.structureSlots);
+    this.structureReplacement = new StructureReplacementSystem(
+      this,
+      this.structureSlots,
+      (paused) => this.pauseGame(paused),
+    );
     this.data.set(RUN_DATA.structureSlots, this.structureSlots);
 
     this.waveText = this.add.text(28, 24, `ONDATA  01 / ${this.lastLevel}`, {
@@ -108,6 +116,7 @@ export class GameScene extends Phaser.Scene {
       this.backgroundMusic = undefined;
       this.pauseView?.destroy();
       this.pauseView = undefined;
+      this.structureReplacement.destroy();
       this.devStructureView?.destroy();
       this.devStructureView = undefined;
       this.devWaveView?.destroy();
@@ -213,7 +222,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private togglePauseMenu(): void {
-    if (this.gameEnded || this.structureChoice) return;
+    if (this.gameEnded || this.structureChoice || this.structureReplacement.isOpen()) return;
     if (this.devStructureView) {
       this.closeDevStructureChoice();
       return;

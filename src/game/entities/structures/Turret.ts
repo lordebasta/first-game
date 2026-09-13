@@ -27,10 +27,10 @@ export class Turret extends OutpostStructure {
   } as const;
 
   private nextShotAt = 0;
-  private adjacentFireRateMultiplier = 1;
+  private automaticFireRateMultiplier = 1;
 
-  override setAdjacentFireRateMultiplier(multiplier: number): void {
-    this.adjacentFireRateMultiplier = multiplier;
+  override setAutomaticFireRateMultiplier(multiplier: number): void {
+    this.automaticFireRateMultiplier = multiplier;
   }
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -59,7 +59,7 @@ export class Turret extends OutpostStructure {
       tint: 0x9fe7ff,
       scale: 0.78,
     });
-    this.nextShotAt = time + SHOT_INTERVAL_MS * this.adjacentFireRateMultiplier;
+    this.nextShotAt = time + SHOT_INTERVAL_MS * this.automaticFireRateMultiplier;
   }
 
   private findTarget(): Enemy | undefined {

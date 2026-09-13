@@ -91,6 +91,20 @@ export function createGameTextures(scene: Phaser.Scene): void {
     graphics.destroy();
   }
 
+  if (!scene.textures.exists("golden-raider")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillCircle(22, 15, 12);
+    graphics.fillTriangle(2, 15, 14, 4, 14, 26);
+    graphics.fillTriangle(42, 15, 30, 4, 30, 26);
+    graphics.fillStyle(0x7a4f00, 1);
+    graphics.fillCircle(18, 13, 3);
+    graphics.fillCircle(26, 13, 3);
+    graphics.fillRect(18, 20, 8, 3);
+    graphics.generateTexture("golden-raider", 44, 30);
+    graphics.destroy();
+  }
+
   if (!scene.textures.exists("siege-bomber-boss")) {
     const graphics = scene.make.graphics({ x: 0, y: 0 });
     graphics.fillStyle(0xffffff, 1);

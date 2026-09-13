@@ -61,7 +61,8 @@ marcatura con trasparenza, senza sostituire il colore della vita.
   rilascia uno Scout da 2 integrita ogni 1,2 secondi, dopo un primo rilascio
   ritardato di 1,6 secondi. Non esiste un limite agli Scout attivi; gli Scout
   rimasti devono essere eliminati per vincere.
-- 11-15: Infantry, Bombardieri e alcuni Scout; ondata 15 mini-boss.
+- 11: insieme a Infantry e Bombardiere compare una sola Preda dorata. Attraversa lo schermo una volta e fugge; se viene distrutta, permette di sostituire una struttura e scegliere per quella nuova tanti upgrade quanti ne aveva la struttura originaria. La vecchia struttura e i suoi upgrade vengono rimossi dalla run.
+- 12-15: Infantry, Bombardieri e alcuni Scout; ondata 15 mini-boss.
 - 16-20: Infantry, Tank in prima linea e Bombardieri; ondata 20 mini-boss.
 - 21-25: da definire; ondata 25 mini-boss.
 - 26-30: da definire; ondata 30 e scontro finale.
