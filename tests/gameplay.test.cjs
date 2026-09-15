@@ -85,6 +85,14 @@ const { DroneFactory, DRONE_FACTORY_UPGRADES } = load('src/game/entities/structu
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
 const { AmmoDepot, AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
 const { WAVES, LAST_LEVEL } = load('src/game/systems/WaveDefinitions.ts');
+const { getSoundEffectsVolume, initializeSoundEffectsVolume } = load('src/game/audio/SoundEffects.ts');
+
+test('sound effects start at fifty percent volume', () => {
+  const values = new Map();
+  const scene = { registry: { get: (key) => values.get(key), set: (key, value) => values.set(key, value) } };
+  initializeSoundEffectsVolume(scene);
+  assert.equal(getSoundEffectsVolume(scene), 0.5);
+});
 
 test('every implemented structure exposes exactly three upgrades', () => {
   for (const upgrades of [
@@ -474,6 +482,55 @@ test('drones randomize among the three enemies closest to the base', () => {
   }
 });
 
+test('drones fire lasers by default and the twin-laser upgrade triggers every second attack', () => {
+  assert(DRONE_FACTORY_UPGRADES.some((upgrade) => upgrade.id === 'double-laser'));
+  assert(!DRONE_FACTORY_UPGRADES.some((upgrade) => upgrade.id === 'instant-laser'));
+
+  const beams = [];
+  const scene = {
+    add: {
+      line(_x, _y, fromX, fromY, toX, toY) {
+        const beam = {
+          fromX, fromY, toX, toY,
+          setOrigin() { return this; }, setLineWidth() { return this; }, destroy() {},
+        };
+        beams.push(beam);
+        return beam;
+      },
+    },
+    tweens: { add() {} },
+    cache: { audio: { exists: () => false } },
+  };
+  const primary = new Infantry({}), secondary = new Infantry({});
+  primary.spawn(100, 400, { health: 4 });
+  secondary.spawn(200, 300, { health: 4 });
+  const drone = Object.create(Drone.prototype);
+  Object.assign(drone, { scene, x: 100, y: 530, target: primary, nextShotAt: 0, attackCount: 0 });
+
+  drone.update(0, [primary, secondary], {
+    doubleLaser: true,
+    fireRateMultiplier: 1,
+    bombHunter: false,
+    reservedBombs: new Set(),
+  });
+  assert.equal(primary.getHealth(), 3);
+  assert.equal(secondary.getHealth(), 4);
+  assert.equal(beams.length, 1);
+
+  drone.target = primary;
+  drone.nextShotAt = 0;
+  drone.update(0, [primary, secondary], {
+    doubleLaser: true,
+    fireRateMultiplier: 1,
+    bombHunter: false,
+    reservedBombs: new Set(),
+  });
+  assert.equal(primary.getHealth(), 2);
+  assert.equal(secondary.getHealth(), 3);
+  assert.equal(beams.length, 3);
+  assert.notEqual(beams[1].toX, beams[2].toX);
+});
+
 test('bomb-hunter drones always prioritize the bomb closest to the base', () => {
   const drone = Object.create(Drone.prototype);
   const lowestEnemy = new Infantry({});
@@ -490,7 +547,7 @@ test('bomb-hunter drones always prioritize the bomb closest to the base', () => 
   drone.target = lowestEnemy;
   drone.nextShotAt = 1_000;
   drone.update(0, [lowestEnemy, highBomb, lowBomb], {
-    laser: false,
+    doubleLaser: false,
     fireRateMultiplier: 1,
     bombHunter: true,
     reservedBombs: new Set(),
@@ -768,39 +825,24 @@ test('destroyed bombs deal area damage to nearby tanks', () => {
   assert.equal(tank.getHealth(), 6);
 });
 
-test('bomb-hunter attacks use 100 bomb damage without increasing normal damage', () => {
-  const targets = [];
+test('bomb-hunter lasers add one damage against bombs without increasing normal damage', () => {
   const scene = {
-    physics: {
-      overlapCirc: (x, y, radius) => targets
-        .filter((target) => target.active && Math.hypot(target.x - x, target.y - y) <= radius)
-        .map((gameObject) => ({ gameObject })),
-    },
     add: {
-      circle: () => ({ destroy() {} }),
-      rectangle: () => ({ angle: 0, setRotation() { return this; }, destroy() {} }),
+      line: () => ({ setOrigin() { return this; }, setLineWidth() { return this; }, destroy() {} }),
     },
     tweens: { add() {} },
   };
-  const bomb = new Bomb(scene);
+  const drone = Object.create(Drone.prototype);
+  Object.assign(drone, { scene, x: 100, y: 530 });
+  const bomb = new Bomb({});
   bomb.spawn(100, 100, { health: 5 });
-  targets.push(bomb);
-  bomb.receiveHit({ damage: 100, source: {} });
-  assert.equal(bomb.active, false);
-
-  const projectile = new Projectile(scene);
   const infantry = new Infantry({});
   infantry.spawn(100, 100, { health: 4 });
-  targets.push(infantry);
-  projectile.launch(100, 100, 0, { damage: 1, bombDamage: 100 });
-  projectile.hit(infantry);
-  assert.equal(infantry.getHealth(), 3);
 
-  const secondBomb = new Bomb(scene);
-  secondBomb.spawn(100, 100, { health: 5 });
-  targets.push(secondBomb);
-  const secondProjectile = new Projectile(scene);
-  secondProjectile.launch(100, 100, 0, { damage: 1, bombDamage: 100 });
-  secondProjectile.hit(secondBomb);
-  assert.equal(secondBomb.active, false);
+  drone.fireLaser(bomb, true);
+  drone.fireLaser(infantry, true);
+
+  assert.equal(bomb.getHealth(), 3);
+  assert.equal(bomb.active, true);
+  assert.equal(infantry.getHealth(), 3);
 });

@@ -75,17 +75,17 @@ forse: Il giocatore spara colpi istantanei laser?
 
 ### Fabbrica droni
 
-I droni possono essere trasformati in una fonte di danno istantaneo: il laser
-non e un proiettile, quindi non ha una velocita da potenziare. Le carte
-premiano copertura, danno e difesa dalle bombe.
+I droni infliggono danno istantaneo con un laser, che non e un proiettile e
+quindi non ha una velocita da potenziare. Le carte premiano copertura, numero
+di bersagli e difesa dalle bombe.
 
 | Carta | Effetto |
 | --- | --- |
 | Linea di assemblaggio | Schiera un drone aggiuntivo. |
-| Laser istantaneo | Il drone sostituisce il colpo normale con un laser istantaneo. |
+| Laser gemelli | Ogni secondo attacco del drone spara due laser contro due nemici diversi. Se resta un solo bersaglio valido, spara un solo laser. |
 | DOPO: Laser focalizzato | Il laser infligge danno aggiuntivo. |
 | DOPO: Raffreddamento efficiente | Riduce l'intervallo fra i laser. |
-| Cacciabombe | Da priorita assoluta alle bombe e permette a ogni colpo dei droni di distruggerle immediatamente. Droni diversi non puntano la stessa bomba. |
+| Cacciabombe | Da priorita assoluta alle bombe e aggiunge 1 al danno dei laser contro di loro. Droni diversi non puntano la stessa bomba. |
 | DOPO: Laser perforante | Il laser attraversa il bersaglio e colpisce un altro invasore allineato. |
 
 ### Torretta
@@ -182,7 +182,7 @@ controllo del bersaglio e trasformazione del fuoco.
 3. Implementare prima le carte semplici e numeriche di Torretta, Centrale,
    Muro e Deposito.
 4. Implementare il Radar completo, poi le carte che dipendono dalla marcatura.
-5. Implementare il laser istantaneo dei droni prima delle carte di danno e
+5. Implementare il laser gemello dei droni prima delle carte di danno e
    perforazione.
 6. Introdurre le carte sinergia soltanto dopo che ogni struttura possiede uno
    stato di carte affidabile e puo essere scelta come bersaglio di un effetto.

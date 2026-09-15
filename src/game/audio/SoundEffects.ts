@@ -3,7 +3,7 @@ import type Phaser from "phaser";
 export const SOUND_EFFECTS = {
   laser: { key: "laser", gain: 0.3 },
   projectile: { key: "projectile", gain: 0.22 },
-  explosion: { key: "explosion", gain: 0.48 },
+  explosion: { key: "explosion", gain: 0.34 },
   uiClick: { key: "ui-click", gain: 2 },
 } as const;
 
@@ -11,7 +11,7 @@ const LASER_SOUND_INTERVAL_MS = 35;
 const PROJECTILE_SOUND_INTERVAL_MS = 30;
 const EXPLOSION_SOUND_INTERVAL_MS = 55;
 const SOUND_EFFECTS_VOLUME_KEY = "sound-effects-volume";
-const DEFAULT_SOUND_EFFECTS_VOLUME = 1;
+const DEFAULT_SOUND_EFFECTS_VOLUME = 0.5;
 const lastLaserAt = new WeakMap<Phaser.Scene, number>();
 const lastProjectileAt = new WeakMap<Phaser.Scene, number>();
 const lastExplosionAt = new WeakMap<Phaser.Scene, number>();

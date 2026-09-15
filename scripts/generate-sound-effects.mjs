@@ -43,14 +43,17 @@ writeWav("projectile.wav", 0.1, (time, duration) => {
 
 let randomState = 0x51f15e;
 let filteredNoise = 0;
-writeWav("explosion.wav", 0.32, (time, duration) => {
+let softenedNoise = 0;
+writeWav("explosion.wav", 0.42, (time, duration) => {
   randomState = (Math.imul(randomState, 1_664_525) + 1_013_904_223) >>> 0;
   const noise = randomState / 0x80000000 - 1;
   const progress = time / duration;
-  const smoothing = 0.42 - progress * 0.31;
+  const smoothing = 0.11 - progress * 0.065;
   filteredNoise += smoothing * (noise - filteredNoise);
-  const envelope = Math.min(1, time / 0.006) * (1 - progress) ** 2;
-  const boomPhase = 2 * Math.PI * (92 * time - 78 * time * time);
-  const mixed = filteredNoise * 0.82 + Math.sin(boomPhase) * 0.34;
-  return Math.tanh(mixed * 1.45) * envelope;
+  softenedNoise += 0.16 * (filteredNoise - softenedNoise);
+  const envelope = Math.min(1, time / 0.014) * (1 - progress) ** 1.8;
+  const boomPhase = 2 * Math.PI * (64 * time - 36 * time * time);
+  const rumble = Math.sin(boomPhase) + Math.sin(boomPhase * 0.51) * 0.28;
+  const mixed = softenedNoise * 0.48 + rumble * 0.52;
+  return Math.tanh(mixed * 1.12) * envelope * 0.78;
 });

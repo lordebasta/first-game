@@ -3,13 +3,12 @@ import { Enemy } from "../Enemy";
 import { Bomb } from "../Bomb";
 import { COLORS } from "../../constants";
 import { RUN_DATA } from "../../RunData";
-import { PlayerWeapon } from "../../systems/PlayerWeapon";
 import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
 
 export const DRONE_FACTORY_UPGRADES = [
   { id: "assembly-line", name: "LINEA DI ASSEMBLAGGIO", description: "+1 drone" },
-  { id: "instant-laser", name: "LASER ISTANTANEO", description: "I droni colpiscono senza proiettile" },
-  { id: "bomb-hunter", name: "CACCIABOMBE", description: "Da priorita alle bombe e le distrugge al primo colpo" },
+  { id: "double-laser", name: "LASER GEMELLI", description: "Ogni 2 attacchi colpisce due nemici diversi" },
+  { id: "bomb-hunter", name: "CACCIABOMBE", description: "Priorita alle bombe e +1 danno contro di loro" },
 ] as const satisfies readonly StructureUpgrade[];
 // Upgrade laser rimandati: Laser focalizzato, Raffreddamento efficiente e Laser perforante.
 
@@ -17,7 +16,7 @@ export class DroneFactory extends OutpostStructure {
   static readonly definition = {
     kind: "drone-factory",
     name: "FABBRICA DRONI",
-    description: "Un drone punta e spara al nemico piu in basso",
+    description: "Un drone punta e colpisce i nemici con un laser",
     color: COLORS.accent,
     unique: true,
   } as const;
@@ -34,8 +33,7 @@ export class DroneFactory extends OutpostStructure {
   }
 
   protected override onInstall(): void {
-    const weapon = this.scene.data.get(RUN_DATA.weapon) as PlayerWeapon;
-    this.drones.push(new Drone(this.scene, this.x, weapon));
+    this.drones.push(new Drone(this.scene, this.x));
   }
 
   protected override onUpdate(time: number): void {
@@ -44,7 +42,7 @@ export class DroneFactory extends OutpostStructure {
     const reservedBombs = new Set<Bomb>();
     for (const drone of this.drones) {
       drone.update(time, enemies, {
-        laser: this.hasUpgrade("instant-laser"),
+        doubleLaser: this.hasUpgrade("double-laser"),
         fireRateMultiplier: this.automaticFireRateMultiplier,
         bombHunter: this.hasUpgrade("bomb-hunter"),
         reservedBombs,
@@ -59,15 +57,11 @@ export class DroneFactory extends OutpostStructure {
 
   protected override onUpgradeApplied(id: string): void {
     if (id === "assembly-line") {
-      this.drones.push(new Drone(this.scene, this.x + 24, this.weapon));
+      this.drones.push(new Drone(this.scene, this.x + 24));
     }
   }
 
   protected override onUpgradeRemoved(id: string): void {
     if (id === "assembly-line") this.drones.pop()?.destroy();
-  }
-
-  private get weapon(): PlayerWeapon {
-    return this.scene.data.get(RUN_DATA.weapon) as PlayerWeapon;
   }
 }

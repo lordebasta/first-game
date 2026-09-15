@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import { COLORS } from "../constants";
 import { Enemy } from "./Enemy";
 import { Bomb } from "./Bomb";
-import { PlayerWeapon } from "../systems/PlayerWeapon";
 import { playLaserSound } from "../audio/SoundEffects";
 
 const DRONE_Y = 530;
@@ -11,7 +10,7 @@ const SHOT_INTERVAL_MS = 1_100;
 const TARGET_CANDIDATE_COUNT = 3;
 
 export interface DroneUpdateOptions {
-  laser: boolean;
+  doubleLaser: boolean;
   fireRateMultiplier: number;
   bombHunter: boolean;
   reservedBombs: Set<Bomb>;
@@ -20,9 +19,10 @@ export interface DroneUpdateOptions {
 /** Autonomous support unit created by a Drone Factory. It has no physics body. */
 export class Drone extends Phaser.GameObjects.Container {
   private nextShotAt = 0;
+  private attackCount = 0;
   private target?: Enemy;
 
-  constructor(scene: Phaser.Scene, x: number, private readonly weapon: PlayerWeapon) {
+  constructor(scene: Phaser.Scene, x: number) {
     const body = scene.add.circle(0, 0, 13, COLORS.accent).setStrokeStyle(2, COLORS.player);
     const eye = scene.add.circle(0, -1, 4, COLORS.background);
     super(scene, x, DRONE_Y, [body, eye]);
@@ -52,20 +52,23 @@ export class Drone extends Phaser.GameObjects.Container {
     if (time < this.nextShotAt) {
       return;
     }
-    if (options.laser) {
-      target.receiveHit({ damage: options.bombHunter && target instanceof Bomb ? 100 : 1, source: this });
-      playLaserSound(this.scene);
-      const beam = this.scene.add.line(0, 0, this.x, this.y - 18, target.x, target.y, 0x9fe7ff, 0.9)
-        .setOrigin(0)
-        .setLineWidth(2);
-      this.scene.tweens.add({ targets: beam, alpha: 0, duration: 120, onComplete: () => beam.destroy() });
-    } else {
-      this.weapon.fireFrom(time, new Phaser.Math.Vector2(this.x, this.y - 18), 0, {
-        tint: 0x9fe7ff,
-        scale: 0.78,
-        bombDamage: options.bombHunter ? 100 : undefined,
-      });
+
+    this.attackCount += 1;
+    const targets = [target];
+    if (options.doubleLaser && this.attackCount % 2 === 0) {
+      const secondTarget = this.chooseTarget(
+        targetableEnemies.filter((enemy) => enemy !== target),
+        options.bombHunter,
+        options.reservedBombs,
+      );
+      if (secondTarget) {
+        targets.push(secondTarget);
+        if (secondTarget instanceof Bomb) options.reservedBombs.add(secondTarget);
+      }
     }
+
+    for (const laserTarget of targets) this.fireLaser(laserTarget, options.bombHunter);
+    playLaserSound(this.scene);
     this.nextShotAt = time + SHOT_INTERVAL_MS * options.fireRateMultiplier;
     this.target = undefined;
   }
@@ -75,15 +78,24 @@ export class Drone extends Phaser.GameObjects.Container {
     prioritizeBombs: boolean,
     reservedBombs: ReadonlySet<Bomb>,
   ): Enemy | undefined {
+    const availableEnemies = enemies.filter((enemy) => !(enemy instanceof Bomb && reservedBombs.has(enemy)));
     if (prioritizeBombs) {
-      const closestBomb = enemies
-        .filter((enemy): enemy is Bomb => enemy instanceof Bomb && !reservedBombs.has(enemy))
+      const closestBomb = availableEnemies
+        .filter((enemy): enemy is Bomb => enemy instanceof Bomb)
         .sort((first, second) => second.y - first.y)[0];
       if (closestBomb) return closestBomb;
     }
-    const candidates = [...enemies]
+    const candidates = [...availableEnemies]
       .sort((first, second) => second.y - first.y)
       .slice(0, TARGET_CANDIDATE_COUNT);
     return candidates.length > 0 ? Phaser.Utils.Array.GetRandom(candidates) : undefined;
+  }
+
+  private fireLaser(target: Enemy, bombHunter: boolean): void {
+    target.receiveHit({ damage: 1 + (bombHunter && target instanceof Bomb ? 1 : 0), source: this });
+    const beam = this.scene.add.line(0, 0, this.x, this.y - 18, target.x, target.y, 0x9fe7ff, 0.9)
+      .setOrigin(0)
+      .setLineWidth(2);
+    this.scene.tweens.add({ targets: beam, alpha: 0, duration: 120, onComplete: () => beam.destroy() });
   }
 }
