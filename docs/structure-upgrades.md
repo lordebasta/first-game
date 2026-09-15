@@ -100,7 +100,7 @@ velocita, controllo dell'area o precisione.
 | DOPO: Canne gemelle | Ogni attivazione spara un proiettile aggiuntivo con piccolo scarto orizzontale. |
 | DOPO: Meccanismo rapido | Riduce l'intervallo fra le raffiche. |
 | Carica ad alto impatto | Aumenta il danno del proiettile. |
-| Munizioni esplosive | I colpi esplodono all'impatto e danneggiano i nemici vicini. |
+| Munizioni esplosive | Ogni secondo proiettile esplode all'impatto e danneggia i nemici vicini. |
 | Colpi perforanti | I colpi attraversano un numero limitato di invasori. |
 | DOPO: Stabilizzatore | I proiettili hanno meno dispersione e viaggiano piu rapidamente. |
 

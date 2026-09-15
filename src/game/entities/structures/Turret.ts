@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import { COLORS } from "../../constants";
 import { Enemy } from "../Enemy";
 import { PlayerWeapon } from "../../systems/PlayerWeapon";
@@ -13,7 +14,7 @@ export const TURRET_UPGRADES = [
   // { id: "twin", name: "CANNE GEMELLE", description: "+1 proiettile per raffica" }, // DOPO
   // { id: "rapid", name: "MECCANISMO RAPIDO", description: "-25% attesa fra le raffiche" }, // DOPO
   { id: "damage", name: "ALTO IMPATTO", description: "+1 danno per proiettile" },
-  { id: "explosive", name: "COLPI ESPLOSIVI", description: "Danno ad area entro 80 pixel" },
+  { id: "explosive", name: "COLPI ESPLOSIVI", description: "Ogni 2 colpi infligge danno ad area" },
   { id: "piercing", name: "COLPI PERFORANTI", description: "Attraversa 1 invasore aggiuntivo" },
   // { id: "stable", name: "STABILIZZATORE", description: "+30% velocita dei proiettili" }, // DOPO
 ] as const satisfies readonly StructureUpgrade[];
@@ -27,6 +28,7 @@ export class Turret extends OutpostStructure {
   } as const;
 
   private nextShotAt = 0;
+  private shotCount = 0;
   private automaticFireRateMultiplier = 1;
 
   override setAutomaticFireRateMultiplier(multiplier: number): void {
@@ -51,10 +53,11 @@ export class Turret extends OutpostStructure {
       -MAX_HORIZONTAL_VELOCITY,
       MAX_HORIZONTAL_VELOCITY,
     );
+    this.shotCount += 1;
     this.weapon.fireFrom(time, origin, horizontalVelocity, {
       damage: this.hasUpgrade("damage") ? 2 : 1,
       pierce: this.hasUpgrade("piercing") ? 1 : 0,
-      explosionRadius: this.hasUpgrade("explosive") ? 80 : 0,
+      explosionRadius: this.hasUpgrade("explosive") && this.shotCount % 2 === 0 ? 80 : 0,
       speedMultiplier: 1.2,
       tint: 0x9fe7ff,
       scale: 0.78,

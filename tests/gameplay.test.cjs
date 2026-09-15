@@ -605,6 +605,34 @@ function structureWithoutUpgrades(kind) {
   return { definition: { kind }, getUpgradeDefinitions: () => [], hasUpgrade: () => false };
 }
 
+test('turret explosive rounds trigger on every second projectile', () => {
+  const fired = [];
+  const enemy = new Infantry({});
+  enemy.spawn(100, 100);
+  const weapon = { fireFrom: (_time, _origin, _velocity, options) => fired.push(options) };
+  const structure = turret();
+  Object.assign(structure, {
+    scene: {
+      data: {
+        get: (key) => key === 'enemies' ? { getChildren: () => [enemy] } : weapon,
+      },
+    },
+    x: 100,
+    y: 600,
+    nextShotAt: 0,
+    shotCount: 0,
+    automaticFireRateMultiplier: 1,
+  });
+  structure.upgrades.add('explosive');
+
+  structure.onUpdate(0);
+  structure.onUpdate(700);
+  structure.onUpdate(1_400);
+  structure.onUpdate(2_100);
+
+  assert.deepEqual(fired.map((options) => options.explosionRadius), [0, 80, 0, 80]);
+});
+
 test('card quotas follow free slots and never replace missing upgrades with structures', () => {
   for (let free = 0; free <= 3; free++) {
     const hand = cards(Array.from({ length: 3 }, (_, i) => i < free ? undefined : turret()));
