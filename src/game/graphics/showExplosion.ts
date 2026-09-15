@@ -1,6 +1,8 @@
 import type Phaser from "phaser";
+import { playExplosionSound } from "../audio/SoundEffects";
 
 export function showExplosion(scene: Phaser.Scene, x: number, y: number, radius: number): void {
+  playExplosionSound(scene, Math.max(0.55, Math.min(1, radius / 82)));
   const flash = scene.add.circle(x, y, radius, 0xffc857, 0.25);
   const core = scene.add.circle(x, y, Math.max(4, radius * 0.24), 0xffffff, 0.95);
   const fragments = Array.from({ length: Math.max(5, Math.min(12, Math.round(radius / 8))) }, (_, index) => {

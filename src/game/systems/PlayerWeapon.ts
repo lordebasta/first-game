@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { playProjectileSound } from "../audio/SoundEffects";
 import { Projectile, type ProjectileOptions } from "../entities/Projectile";
 
 const SHOT_COOLDOWN_MS = 190;
@@ -13,7 +14,7 @@ export class PlayerWeapon {
   private shotCount = 0;
   private readonly areaShotSources = new Map<object, { every: number; count: number; centerDamage: number }>();
 
-  constructor(scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.projectiles = scene.physics.add.group({ classType: Projectile });
   }
 
@@ -36,6 +37,7 @@ export class PlayerWeapon {
   fireFrom(_time: number, origin: Phaser.Math.Vector2, horizontalVelocity = 0, options: ProjectileOptions = {}): void {
     const projectile = this.projectiles.get() as Projectile;
     projectile.launch(origin.x, origin.y, horizontalVelocity, options);
+    playProjectileSound(this.scene);
   }
 
   changeCooldownMultiplier(amount: number): void {
