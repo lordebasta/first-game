@@ -86,6 +86,8 @@ const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { StructureReplacementSystem } = load('src/game/systems/StructureReplacementSystem.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
 const { LaserArray, LASER_ARRAY_UPGRADES } = load('src/game/entities/structures/LaserArray.ts');
+const { Mortar, MORTAR_UPGRADES } = load('src/game/entities/structures/Mortar.ts');
+const { STRUCTURE_CLASSES } = load('src/game/entities/structures/index.ts');
 const { PowerPlant, POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
 const { DroneFactory, DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
@@ -101,12 +103,13 @@ test('sound effects start at fifty percent volume', () => {
   assert.equal(getSoundEffectsVolume(scene), 0.5);
 });
 
-test('every implemented structure exposes exactly three upgrades', () => {
+test('every selectable structure exposes three upgrades', () => {
   for (const upgrades of [
     POWER_PLANT_UPGRADES,
     DRONE_FACTORY_UPGRADES,
     TURRET_UPGRADES,
     LASER_ARRAY_UPGRADES,
+    MORTAR_UPGRADES,
     RADAR_UPGRADES,
     AMMO_DEPOT_UPGRADES,
   ]) {
@@ -115,8 +118,9 @@ test('every implemented structure exposes exactly three upgrades', () => {
 });
 
 test('every selectable structure is unique for the current build', () => {
-  for (const StructureClass of [PowerPlant, DroneFactory, Turret, LaserArray, Radar, AmmoDepot]) {
+  for (const StructureClass of [PowerPlant, DroneFactory, Turret, LaserArray, Mortar, Radar, AmmoDepot]) {
     assert.equal(StructureClass.definition.unique, true);
+    assert(STRUCTURE_CLASSES.includes(StructureClass));
   }
 });
 
@@ -769,7 +773,7 @@ test('laser line finder keeps highest-health priority and selects the path with 
   assert.equal(structure.chooseTarget([laserEnemy(360, 320, 6), ...enemies]).getHealth(), 6);
 });
 
-test('laser deals two base damage to every enemy crossed by its beam', () => {
+test('laser deals one base damage to every enemy crossed by its beam', () => {
   const structure = laserArray();
   const first = laserEnemy(360, 320, 5);
   const second = laserEnemy(360, 220, 4);
@@ -784,7 +788,7 @@ test('laser deals two base damage to every enemy crossed by its beam', () => {
   };
 
   assert.equal(structure.fireLaser(first, [first, second, third, outside]), 3);
-  assert.deepEqual([first.health, second.health, third.health, outside.health], [3, 2, 1, 4]);
+  assert.deepEqual([first.health, second.health, third.health, outside.health], [4, 3, 2, 4]);
 });
 
 test('laser charge pauses outside range and recovers after a three-target hit', () => {
@@ -803,11 +807,11 @@ test('laser charge pauses outside range and recovers after a three-target hit', 
   structure.onUpdate(250, 2_000);
   assert.equal(structure.chargeMs, 250);
   structure.upgrades.add('extended-coil');
-  structure.onUpdate(2_250, 199);
+  structure.onUpdate(2_250, 249);
   assert.equal(shots, 0);
-  structure.onUpdate(2_449, 1);
+  structure.onUpdate(2_499, 1);
   assert.equal(shots, 1);
-  assert.equal(structure.chargeMs, 157.5);
+  assert.equal(structure.chargeMs, 175);
 });
 
 test('laser display shows charge percentage and dims when the player leaves', () => {
@@ -822,16 +826,104 @@ test('laser display shows charge percentage and dims when the player leaves', ()
     setAlpha() { return this; },
   };
   const emitter = { setFillStyle() { return this; }, setStrokeStyle() { return this; } };
-  Object.assign(structure, { chargeFill: fill, chargeText: label, emitter, shownPercent: -1, chargeMs: 225 });
+  Object.assign(structure, { chargeFill: fill, chargeText: label, emitter, shownPercent: -1, chargeMs: 250 });
 
   structure.refreshChargeDisplay(true);
   assert.equal(fill.scale, 0.5);
   assert.equal(label.text, '50%');
   structure.refreshChargeDisplay(false);
   assert.equal(fill.alpha, 0.45);
-  structure.chargeMs = 450;
+  structure.chargeMs = 500;
   structure.refreshChargeDisplay(true);
   assert.equal(label.text, 'OK');
+});
+
+test('mortar charges near the player and blasts the toughest enemy and nearby targets', () => {
+  const player = { x: 500 };
+  const strongest = new Tank({});
+  strongest.spawn(350, 300);
+  const nearby = new Infantry({});
+  nearby.spawn(390, 310, { health: 5 });
+  const edge = new Infantry({});
+  edge.spawn(445, 300, { health: 5 });
+  const distant = new Infantry({});
+  distant.spawn(600, 310, { health: 5 });
+  const enemies = [nearby, strongest, edge, distant];
+  const visuals = [];
+  const scene = {
+    data: { get: (key) => key === RUN_DATA.player ? player : { getChildren: () => enemies } },
+    physics: {
+      overlapCirc(x, y, radius) {
+        return enemies.filter((enemy) => Math.hypot(enemy.x - x, enemy.y - y) <= radius)
+          .map((gameObject) => ({ gameObject }));
+      },
+    },
+    add: {
+      circle(x, y) {
+        const visual = {
+          x, y, destroyed: false,
+          setStrokeStyle() { return this; }, setDepth() { return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+          destroy() { this.destroyed = true; },
+        };
+        visuals.push(visual);
+        return visual;
+      },
+      rectangle() { return { angle: 0, setRotation() { return this; }, destroy() {} }; },
+    },
+    tweens: { add() {} },
+  };
+  const mortar = Object.create(Mortar.prototype);
+  Object.assign(mortar, {
+    x: 360, y: 625, scene, chargeMs: 0, automaticFireRateMultiplier: 1, upgrades: new Set(),
+    explosions: new (load('src/game/systems/ExplosionSystem.ts').ExplosionSystem)(scene),
+  });
+  mortar.refreshChargeDisplay = () => {};
+
+  mortar.onUpdate(0, 1_800);
+  assert.equal(mortar.chargeMs, 0);
+  player.x = 360;
+  mortar.onUpdate(1_800, 1_799);
+  assert.equal(visuals.length, 0);
+  mortar.onUpdate(3_599, 1);
+  assert.equal(visuals.length, 1);
+  assert.equal(mortar.shell.target, strongest);
+  assert.equal(mortar.shell.directDamage, 3);
+  assert.equal(strongest.getHealth(), 8);
+  mortar.onUpdate(3_600, 399);
+  assert.equal(strongest.getHealth(), 8);
+  mortar.onUpdate(3_999, 1);
+  assert.equal(strongest.getHealth(), 5);
+  assert.equal(nearby.getHealth(), 4);
+  assert.equal(edge.getHealth(), 5);
+  assert.equal(distant.getHealth(), 5);
+  assert.equal(visuals[0].destroyed, true);
+
+  mortar.upgrades.add('heavy-shell');
+  mortar.upgrades.add('shrapnel');
+  strongest.spawn(350, 300);
+  mortar.chargeMs = 1_800;
+  mortar.onUpdate(4_000, 0);
+  mortar.onUpdate(4_000, 400);
+  assert.equal(strongest.getHealth(), 3);
+  assert.equal(nearby.getHealth(), 2);
+  assert.equal(edge.getHealth(), 3);
+  assert.equal(distant.getHealth(), 5);
+});
+
+test('ballistic computer breaks strongest-target ties by the number of enemies in blast range', () => {
+  const mortar = Object.create(Mortar.prototype);
+  mortar.upgrades = new Set();
+  const isolated = laserEnemy(170, 320, 8);
+  const clustered = laserEnemy(500, 250, 8);
+  const nearby = laserEnemy(530, 250, 3);
+  const further = laserEnemy(510, 275, 2);
+  const enemies = [isolated, clustered, nearby, further];
+
+  assert.equal(mortar.chooseTarget(enemies, enemies), isolated);
+  mortar.upgrades.add('ballistic-computer');
+  assert.equal(mortar.chooseTarget(enemies, enemies), clustered);
+  assert.equal(mortar.chooseTarget([laserEnemy(360, 220, 9), ...enemies], enemies).getHealth(), 9);
 });
 
 test('card quotas follow free slots and never replace missing upgrades with structures', () => {

@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { AmmoDepot, AMMO_DEPOT_UPGRADES } from "./AmmoDepot";
 import { DroneFactory, DRONE_FACTORY_UPGRADES } from "./DroneFactory";
 import { LaserArray, LASER_ARRAY_UPGRADES } from "./LaserArray";
+import { Mortar, MORTAR_UPGRADES } from "./Mortar";
 import { PowerPlant, POWER_PLANT_UPGRADES } from "./PowerPlant";
 import { Radar, RADAR_UPGRADES } from "./Radar";
 import { type OutpostStructure, type StructureConstructor } from "./OutpostStructure";
@@ -14,6 +15,7 @@ export const STRUCTURE_CLASSES: readonly StructureConstructor[] = [
   DroneFactory,
   Turret,
   LaserArray,
+  Mortar,
   Radar,
   AmmoDepot,
 ];
@@ -23,6 +25,7 @@ export const DEV_STRUCTURE_CATALOG = [
   { StructureClass: DroneFactory, upgrades: DRONE_FACTORY_UPGRADES },
   { StructureClass: Turret, upgrades: TURRET_UPGRADES },
   { StructureClass: LaserArray, upgrades: LASER_ARRAY_UPGRADES },
+  { StructureClass: Mortar, upgrades: MORTAR_UPGRADES },
   { StructureClass: Radar, upgrades: RADAR_UPGRADES },
   { StructureClass: AmmoDepot, upgrades: AMMO_DEPOT_UPGRADES },
 ] as const;
