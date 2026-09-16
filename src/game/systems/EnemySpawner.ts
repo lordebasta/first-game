@@ -10,6 +10,8 @@ import { GoldenRaider } from "../entities/GoldenRaider";
 import { SiegeBomberBoss } from "../entities/SiegeBomberBoss";
 import { Tank } from "../entities/Tank";
 import { WarMarshal } from "../entities/WarMarshal";
+import { Sapper } from "../entities/Sapper";
+import { SapperBoss } from "../entities/SapperBoss";
 import { getWaveDefinition, LAST_LEVEL, type EnemyKind, type WaveEnemy } from "./WaveDefinitions";
 
 const START_Y = 94;
@@ -248,6 +250,10 @@ export class EnemySpawner {
         return enemy instanceof Tank;
       case "war-marshal":
         return enemy instanceof WarMarshal;
+      case "sapper":
+        return enemy instanceof Sapper && !(enemy instanceof SapperBoss);
+      case "sapper-boss":
+        return enemy instanceof SapperBoss;
     }
   }
 
@@ -271,6 +277,10 @@ export class EnemySpawner {
         return new Tank(this.scene);
       case "war-marshal":
         return new WarMarshal(this.scene, (marshal) => this.deployMarshalReinforcements(marshal));
+      case "sapper":
+        return new Sapper(this.scene);
+      case "sapper-boss":
+        return new SapperBoss(this.scene);
     }
   }
 

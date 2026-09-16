@@ -1,4 +1,4 @@
-export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "golden-raider" | "siege-bomber-boss" | "tank" | "war-marshal";
+export type EnemyKind = "scout" | "scout-veteran" | "infantry" | "carrier-boss" | "bomber" | "golden-raider" | "siege-bomber-boss" | "tank" | "war-marshal" | "sapper" | "sapper-boss";
 import type { EnemyHealth } from "../entities/Enemy";
 
 export interface WaveEnemy {
@@ -20,6 +20,9 @@ const scout = (): WaveEnemy => ({ kind: "scout" });
 const toughScout = (): WaveEnemy => ({ kind: "scout", health: 2 });
 const infantry = (health: EnemyHealth = 4): WaveEnemy => ({ kind: "infantry", health });
 const tank = (): WaveEnemy => ({ kind: "tank" });
+const sapper = (column: number, spawnDelayMs = 0): WaveEnemy => ({
+  kind: "sapper", column, row: 0, spawnDelayMs,
+});
 const staggerOverTenSeconds = (enemies: WaveEnemy[]): WaveEnemy[] => enemies.map((enemy, index) => ({
   ...enemy,
   spawnDelayMs: enemies.length <= 1 ? 0 : index * 10_000 / (enemies.length - 1),
@@ -203,6 +206,60 @@ export const WAVES: readonly WaveDefinition[] = [
       { kind: "bomber", column: 0, row: 0 },
       ...Array.from({ length: 18 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
       ...[0, 1.7, 3.3, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2,
+    enemies: [
+      sapper(2.5),
+      ...Array.from({ length: 14 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 1.7, 3.3, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2.02,
+    enemies: [
+      { kind: "bomber", column: 0, row: 0 },
+      sapper(2, 2_000), sapper(4, 6_000),
+      ...Array.from({ length: 14 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 1.7, 3.3, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2.05,
+    enemies: [
+      { kind: "bomber", column: 0, row: 0 },
+      { kind: "bomber", column: 5, row: 0 },
+      sapper(2, 2_000), sapper(3, 6_000),
+      ...Array.from({ length: 16 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 2.5, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 5,
+    speedMultiplier: 2.1,
+    enemies: [
+      { kind: "bomber", column: 2.5, row: 0 },
+      sapper(0), sapper(2.5, 4_000), sapper(5, 8_000),
+      ...Array.from({ length: 14 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[0, 1.25, 2.5, 3.75, 5].map((column) => ({ ...tank(), column, row: 4 })),
+    ],
+  },
+  {
+    columns: 6,
+    rows: 4,
+    speedMultiplier: 2.05,
+    enemies: [
+      { kind: "sapper-boss", column: 2.5, row: 0 },
+      ...Array.from({ length: 12 }, (_, index) => ({ ...infantry(5), column: index % 6, row: 1 + Math.floor(index / 6) })),
+      ...[1, 4].map((column) => ({ ...tank(), column, row: 3 })),
     ],
   },
 ];

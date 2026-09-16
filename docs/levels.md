@@ -5,7 +5,7 @@ ancora integro dopo l'ondata 30. Non esistono punteggio, combo o classifica.
 La misura del risultato e l'ondata raggiunta.
 
 La vertical slice corrente si conclude con una schermata di vittoria dopo
-l'ondata 20; le ondate 21-30 restano la struttura prevista per la campagna completa.
+l'ondata 25; le ondate 26-30 restano la struttura prevista per la campagna completa.
 
 Ogni ondata e una singola formazione. Fra un'ondata e la successiva c'e una
 pausa breve durante la quale le strutture danneggiate recuperano un punto
@@ -55,6 +55,12 @@ Il **Tank** ha otto punti integrita, senza corazza o riduzioni del danno. Usa
 la palette estesa dei colori della vita e cambia colore dopo ogni colpo. Marcia
 nella formazione e occupa la linea piu vicina alla base.
 
+Il **Sapper** entra nell'ondata 21 con tre punti integrita. Scende fino a meta
+schermo, si ferma per 0,8 secondi, si allinea allo slot piu vicino
+e poi scende a 100 px/s verso il nucleo. La sua silhouette e il cambio
+di movimento distinguono la minaccia dagli Scout e dalle bombe. Come gli altri
+invasori, raggiungere il nucleo termina la run.
+
 - 6-9: Scout e Infantry. Il numero di Infantry e triplicato rispetto alle
   formazioni iniziali, la velocita sale da 1,35x a 2x e compaiono gradualmente
   Infantry da 4 a 6 integrita. Due file di Scout entrano una alla volta
@@ -73,5 +79,16 @@ nella formazione e occupa la linea piu vicina alla base.
 - 18: tre Tank, quattordici Infantry e un Bombardiere introducono la sinergia fra esplosioni e corazza.
 - 19: cinque Tank, dodici Infantry, due Bombardieri e sei Scout combinano tutte le minacce dell'arco.
 - 20: il Maresciallo da guerra guida diciotto Infantry, quattro Tank e un Bombardiere. Finche e vivo ogni discesa della formazione e aumentata del 40%; a meta integrita chiama due Tank aggiuntivi.
-- 21-25: da definire; ondata 25 mini-boss.
+- 21: quattordici Infantry, quattro Tank e un Sapper centrale. Il Bombardiere
+  assente lascia spazio per imparare il nuovo movimento di corsia.
+- 22: quattordici Infantry, quattro Tank, un Bombardiere e due Sapper che
+  entrano dopo 2 e 6 secondi.
+- 23: sedici Infantry, tre Tank, due Bombardieri e due Sapper scaglionati.
+  Meno Tank compensano la seconda fonte di bombe.
+- 24: quattordici Infantry, cinque Tank, un Bombardiere e tre Sapper che
+  entrano a 0, 4 e 8 secondi, distribuiti fra le tre corsie.
+- 25: un Sapper gigante da 24 integrita guida dodici Infantry e due Tank.
+  A meta schermo si teletrasporta tre volte fra le corsie. Poi resta fermo
+  nella corsia definitiva per 1,2 secondi e scende a 75 px/s verso il nucleo.
+  Puo essere colpito durante tutte le fasi.
 - 26-30: da definire; ondata 30 e scontro finale.

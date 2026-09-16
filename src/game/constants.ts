@@ -1,5 +1,6 @@
 export const GAME_WIDTH = 720;
 export const GAME_HEIGHT = 720;
+export const OUTPOST_SLOT_X = [170, GAME_WIDTH / 2, GAME_WIDTH - 170] as const;
 export const DEV_PANEL_WIDTH = 240;
 export const WINDOW_WIDTH = GAME_WIDTH + DEV_PANEL_WIDTH;
 

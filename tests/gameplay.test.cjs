@@ -28,7 +28,8 @@ class Sprite {
   setTexture(texture) { this.texture = texture; }
   setScale(x, y = x) { this.scaleX = x; this.scaleY = y; }
   setPosition(x, y) { this.x = x; this.y = y; }
-  setX(x) { this.x = x; }
+  setX(x) { this.x = x; return this; }
+  setY(y) { this.y = y; }
   setTint(color) { this.tint = color; }
   setAlpha(alpha) { this.alpha = alpha; }
   setDepth(depth) { this.depth = depth; return this; }
@@ -39,6 +40,7 @@ const phaser = {
   GameObjects: { Container: class {} },
   Math: {
     Clamp: (value, min, max) => Math.max(min, Math.min(max, value)),
+    Between: (min) => min,
     Distance: { Between: (x, y, a, b) => Math.hypot(x - a, y - b) },
     Vector2: class { constructor(x, y) { this.x = x; this.y = y; } },
   },
@@ -72,10 +74,13 @@ const { GoldenRaider } = load('src/game/entities/GoldenRaider.ts');
 const { Bomb } = load('src/game/entities/Bomb.ts');
 const { Tank } = load('src/game/entities/Tank.ts');
 const { WarMarshal } = load('src/game/entities/WarMarshal.ts');
+const { Sapper } = load('src/game/entities/Sapper.ts');
+const { SapperBoss } = load('src/game/entities/SapperBoss.ts');
 const { Infantry } = load('src/game/entities/Infantry.ts');
 const { Projectile } = load('src/game/entities/Projectile.ts');
 const { Drone } = load('src/game/entities/Drone.ts');
 const { CombatSystem } = load('src/game/systems/CombatSystem.ts');
+const { EnemySpawner } = load('src/game/systems/EnemySpawner.ts');
 const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { StructureReplacementSystem } = load('src/game/systems/StructureReplacementSystem.ts');
@@ -115,9 +120,9 @@ test('every selectable structure is unique for the current build', () => {
   }
 });
 
-test('the campaign authors twenty waves with progressive bomber and armored arcs', () => {
-  assert.equal(LAST_LEVEL, 20);
-  assert.equal(WAVES.length, 20);
+test('the campaign authors twenty-five waves with progressive bomber, armored and sapper arcs', () => {
+  assert.equal(LAST_LEVEL, 25);
+  assert.equal(WAVES.length, 25);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'carrier-boss').length, 1);
   assert.equal(WAVES[9].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
   assert(WAVES.slice(5, 10).every((wave) => wave.enemies.some((enemy) => enemy.kind === 'infantry')));
@@ -146,6 +151,105 @@ test('the campaign authors twenty waves with progressive bomber and armored arcs
   assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'tank').length, 4);
   assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'infantry').length, 18);
   assert.equal(WAVES[19].enemies.filter((enemy) => enemy.kind === 'bomber').length, 1);
+  assert.deepEqual(WAVES.slice(20, 24).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'sapper').length), [1, 2, 2, 3]);
+  assert.deepEqual(WAVES.slice(20, 24).map((wave) => wave.enemies.filter((enemy) => enemy.kind === 'bomber').length), [0, 1, 2, 1]);
+  assert(WAVES.slice(20, 24).every((wave) => wave.speedMultiplier <= 2.1));
+  assert.equal(WAVES[24].enemies.filter((enemy) => enemy.kind === 'sapper-boss').length, 1);
+  assert.equal(WAVES[24].enemies.filter((enemy) => enemy.kind === 'tank').length, 2);
+});
+
+test('sapper chooses a slot without highlighting it, pauses, then aligns and dives', () => {
+  const scene = { add: { graphics, rectangle() { throw new Error('Sapper should not create a target marker'); } } };
+  const sapper = new Sapper(scene);
+  sapper.spawn(490, 94);
+  sapper.displayHeight = 38;
+  assert.equal(sapper.getHealth(), 3);
+  sapper.updateMovement(0, 6_000);
+  assert.equal(sapper.y, 310);
+  sapper.updateMovement(6_000, 799);
+  assert.equal(sapper.x, 490);
+  sapper.updateMovement(6_799, 1);
+  sapper.updateMovement(6_800, 300);
+  assert.equal(sapper.x, 550);
+  sapper.updateMovement(7_100, 1_000);
+  assert.equal(sapper.y, 410);
+  sapper.deactivate();
+  sapper.spawn(170, 94);
+  sapper.updateMovement(0, 6_000);
+  sapper.updateMovement(6_000, 800);
+  sapper.updateMovement(6_800, 16);
+  assert.equal(sapper.x, 170);
+});
+
+test('wave-twenty-five boss is a tougher sapper that teleports before locking a lane', () => {
+  const rectangles = [];
+  const scene = {
+    add: {
+      graphics,
+      rectangle(x, y, width) {
+        const rectangle = {
+          x, y, displayWidth: width,
+          setDepth() { return this; }, setOrigin() { return this; }, setVisible() { return this; },
+          setFillStyle(color) { this.fillColor = color; return this; },
+          setStrokeStyle() { return this; }, setX(value) { this.x = value; return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+        };
+        rectangles.push(rectangle);
+        return rectangle;
+      },
+    },
+  };
+  const boss = new SapperBoss(scene);
+  boss.spawn(360, 94);
+  boss.displayHeight = 60;
+  assert(boss instanceof Sapper);
+  assert.equal(boss.getHealth(), 24);
+  assert.equal(boss.usesFormationMovement(), false);
+  boss.receiveHit({ damage: 5, source: {} });
+  assert.equal(boss.getHealth(), 19);
+  boss.updateMovement(0, 6_000);
+  assert.equal(boss.y, 310);
+  boss.updateMovement(6_000, 650);
+  assert.equal(boss.x, 170);
+  boss.updateMovement(6_650, 650);
+  assert.equal(boss.x, 360);
+  boss.updateMovement(7_300, 650);
+  assert.equal(boss.x, 170);
+  assert.equal(rectangles.length, 2);
+  boss.updateMovement(7_950, 1_199);
+  assert.equal(boss.y, 310);
+  boss.updateMovement(9_149, 1);
+  boss.updateMovement(9_150, 16);
+  boss.updateMovement(9_166, 1_000);
+  assert.equal(boss.y, 385);
+});
+
+test('the spawner creates a sapper boss and does not reuse it as a normal sapper', () => {
+  const enemies = [];
+  const group = { getChildren: () => enemies, add: (enemy) => enemies.push(enemy) };
+  const scene = {
+    add: {
+      graphics,
+      existing() {},
+      rectangle(x, y, width) {
+        return {
+          x, y, displayWidth: width,
+          setDepth() { return this; }, setOrigin() { return this; }, setVisible() { return this; },
+          setFillStyle() { return this; }, setStrokeStyle() { return this; },
+          setX(value) { this.x = value; return this; },
+          setPosition(nextX, nextY) { this.x = nextX; this.y = nextY; return this; },
+        };
+      },
+    },
+    physics: { add: { group: () => group, existing() {} } },
+  };
+  const spawner = new EnemySpawner(scene, () => {}, () => {}, () => {});
+  spawner.skipToWave(25, 0);
+  assert.equal(enemies.length, 15);
+  assert.equal(enemies.filter((enemy) => enemy instanceof SapperBoss && enemy.active).length, 1);
+  spawner.skipToWave(21, 0);
+  assert.equal(enemies.filter((enemy) => enemy instanceof SapperBoss && enemy.active).length, 0);
+  assert.equal(enemies.filter((enemy) => enemy instanceof Sapper && !(enemy instanceof SapperBoss) && enemy.active).length, 1);
 });
 
 test('tanks use the extended health color system without armor', () => {
@@ -693,17 +797,17 @@ test('laser charge pauses outside range and recovers after a three-target hit', 
   structure.fireLaser = () => { shots += 1; return 3; };
   structure.upgrades.add('energy-recovery');
 
-  structure.onUpdate(0, 1_000);
-  assert.equal(structure.chargeMs, 1_000);
+  structure.onUpdate(0, 250);
+  assert.equal(structure.chargeMs, 250);
   player.x = 470;
-  structure.onUpdate(1_000, 2_000);
-  assert.equal(structure.chargeMs, 1_000);
+  structure.onUpdate(250, 2_000);
+  assert.equal(structure.chargeMs, 250);
   structure.upgrades.add('extended-coil');
-  structure.onUpdate(3_000, 799);
+  structure.onUpdate(2_250, 199);
   assert.equal(shots, 0);
-  structure.onUpdate(3_799, 1);
+  structure.onUpdate(2_449, 1);
   assert.equal(shots, 1);
-  assert.equal(structure.chargeMs, 630);
+  assert.equal(structure.chargeMs, 157.5);
 });
 
 test('laser display shows charge percentage and dims when the player leaves', () => {
@@ -718,14 +822,14 @@ test('laser display shows charge percentage and dims when the player leaves', ()
     setAlpha() { return this; },
   };
   const emitter = { setFillStyle() { return this; }, setStrokeStyle() { return this; } };
-  Object.assign(structure, { chargeFill: fill, chargeText: label, emitter, shownPercent: -1, chargeMs: 900 });
+  Object.assign(structure, { chargeFill: fill, chargeText: label, emitter, shownPercent: -1, chargeMs: 225 });
 
   structure.refreshChargeDisplay(true);
   assert.equal(fill.scale, 0.5);
   assert.equal(label.text, '50%');
   structure.refreshChargeDisplay(false);
   assert.equal(fill.alpha, 0.45);
-  structure.chargeMs = 1_800;
+  structure.chargeMs = 450;
   structure.refreshChargeDisplay(true);
   assert.equal(label.text, 'OK');
 });

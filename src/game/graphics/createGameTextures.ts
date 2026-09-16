@@ -142,6 +142,30 @@ export function createGameTextures(scene: Phaser.Scene): void {
     graphics.destroy();
   }
 
+  if (!scene.textures.exists("sapper")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillTriangle(20, 0, 1, 15, 20, 38);
+    graphics.fillTriangle(20, 0, 39, 15, 20, 38);
+    graphics.fillStyle(0x555555, 1);
+    graphics.fillCircle(20, 19, 6);
+    graphics.fillRect(17, 29, 6, 8);
+    graphics.generateTexture("sapper", 40, 38);
+    graphics.destroy();
+  }
+
+  if (!scene.textures.exists("sapper-boss")) {
+    const graphics = scene.make.graphics({ x: 0, y: 0 });
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillTriangle(32, 0, 2, 26, 32, 60);
+    graphics.fillTriangle(32, 0, 62, 26, 32, 60);
+    graphics.fillStyle(0x555555, 1);
+    graphics.fillCircle(32, 29, 11);
+    graphics.fillRect(27, 46, 10, 11);
+    graphics.generateTexture("sapper-boss", 64, 60);
+    graphics.destroy();
+  }
+
   if (!scene.textures.exists("war-marshal")) {
     const graphics = scene.make.graphics({ x: 0, y: 0 });
     graphics.fillStyle(0xffffff, 1);

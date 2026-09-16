@@ -1,11 +1,10 @@
 import Phaser from "phaser";
-import { GAME_WIDTH } from "../constants";
+import { OUTPOST_SLOT_X } from "../constants";
 import { createStructure, type StructureConstructor } from "../entities/structures";
 import { type OutpostStructure, type StructureKind } from "../entities/structures/OutpostStructure";
 
 
 const SLOT_Y = 625;
-const SLOT_X = [170, GAME_WIDTH / 2, 550] as const;
 const SLOT_WIDTH = 178;
 
 /** Owns slot occupancy and the run-wide upgrades acquired for each structure type. */
@@ -26,7 +25,7 @@ export class StructureSlots {
     if (StructureClass.definition.unique && this.structures.some(
       (structure) => structure?.definition.kind === StructureClass.definition.kind,
     )) return;
-    const structure = createStructure(StructureClass, this.scene, SLOT_X[slot], SLOT_Y);
+    const structure = createStructure(StructureClass, this.scene, OUTPOST_SLOT_X[slot], SLOT_Y);
     this.structures[slot] = structure;
     structure.install();
     for (const upgradeId of this.structureUpgrades.get(structure.definition.kind) ?? []) {
@@ -89,7 +88,7 @@ export class StructureSlots {
   }
 
   private drawSlots(): void {
-    SLOT_X.forEach((x, index) => {
+    OUTPOST_SLOT_X.forEach((x, index) => {
       this.scene.add.rectangle(x, SLOT_Y, SLOT_WIDTH, 52, 0x0b1a2d, 0.55).setStrokeStyle(2, 0x57728d).setDepth(-1);
       this.scene.add
         .text(x, SLOT_Y + 4, `SLOT ${index + 1}`, { color: "#57728d", fontFamily: "monospace", fontSize: "14px" })

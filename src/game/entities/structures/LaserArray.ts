@@ -6,8 +6,8 @@ import { Enemy } from "../Enemy";
 import { Player } from "../Player";
 import { OutpostStructure, type StructureUpgrade } from "./OutpostStructure";
 
-const CHARGE_MS = 1_800;
-const LASER_DAMAGE = 2;
+const CHARGE_MS = 500;
+const LASER_DAMAGE = 1;
 const CHARGE_RADIUS = 80;
 const EXTENDED_RADIUS = 110;
 const BEAM_WIDTH = 14;
