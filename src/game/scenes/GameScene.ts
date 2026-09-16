@@ -132,7 +132,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.player.weapon.update();
-    this.structureSlots.update(time);
+    this.structureSlots.update(time, delta);
     this.enemySpawner.update(time, delta);
 
     if (this.enemySpawner.hasEnemyReached(this.core.y - 18)) {

@@ -68,6 +68,7 @@ L'avamposto ha una fila di **tre slot**. Ogni struttura ha due punti integrita: 
 - **Centrale** *(comune, unica)*: aumenta velocita di movimento e cadenza di fuoco finche resta integra.
 - **Fabbrica droni** *(rara)*: crea periodicamente un piccolo drone che si muove e spara all'invasore piu in basso.
 - **Torretta** *(comune)*: spara verso l'alto, davanti al proprio slot.
+- **Batteria laser** *(rara, unica)*: si carica in 1,8 secondi solo quando il giocatore e vicino al suo slot, poi colpisce automaticamente il nemico bersagliabile con piu integrita. Il raggio attraversa tutti i nemici lungo la linea e infligge due danni base a ciascuno. Una barra sulla struttura mostra la carica e si illumina quando il giocatore e nel raggio d'azione. I suoi potenziamenti recuperano carica dopo un colpo multiplo, scelgono la linea con piu bersagli fra i nemici a pari integrita e ampliano la zona di carica.
 - **Radar:** marca il nemico piu resistente e aggiunge +1 al danno che riceve.
 - **Deposito munizioni** *(unico)*: ogni quinto attacco del giocatore diventa ad area.
 

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../../constants";
 
-export type StructureKind = "power-plant" | "drone-factory" | "turret" | "radar" | "ammo-depot";
+export type StructureKind = "power-plant" | "drone-factory" | "turret" | "radar" | "ammo-depot" | "laser-array";
 
 export interface StructureDefinition {
   kind: StructureKind;
@@ -59,8 +59,8 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
     this.onInstall();
   }
 
-  update(time: number): void {
-    this.onUpdate(time);
+  update(time: number, delta: number): void {
+    this.onUpdate(time, delta);
   }
 
   uninstall(): void {
@@ -107,7 +107,7 @@ export abstract class OutpostStructure extends Phaser.GameObjects.Container {
 
   protected onInstall(): void {}
 
-  protected onUpdate(_time: number): void {}
+  protected onUpdate(_time: number, _delta: number): void {}
 
   protected onUninstall(): void {}
 

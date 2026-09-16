@@ -80,12 +80,14 @@ const { OutpostCardSystem } = load('src/game/systems/OutpostCardSystem.ts');
 const { StructureSlots } = load('src/game/systems/StructureSlots.ts');
 const { StructureReplacementSystem } = load('src/game/systems/StructureReplacementSystem.ts');
 const { Turret, TURRET_UPGRADES } = load('src/game/entities/structures/Turret.ts');
+const { LaserArray, LASER_ARRAY_UPGRADES } = load('src/game/entities/structures/LaserArray.ts');
 const { PowerPlant, POWER_PLANT_UPGRADES } = load('src/game/entities/structures/PowerPlant.ts');
 const { DroneFactory, DRONE_FACTORY_UPGRADES } = load('src/game/entities/structures/DroneFactory.ts');
 const { Radar, RADAR_UPGRADES } = load('src/game/entities/structures/Radar.ts');
 const { AmmoDepot, AMMO_DEPOT_UPGRADES } = load('src/game/entities/structures/AmmoDepot.ts');
 const { WAVES, LAST_LEVEL } = load('src/game/systems/WaveDefinitions.ts');
 const { getSoundEffectsVolume, initializeSoundEffectsVolume } = load('src/game/audio/SoundEffects.ts');
+const { RUN_DATA } = load('src/game/RunData.ts');
 
 test('sound effects start at fifty percent volume', () => {
   const values = new Map();
@@ -99,6 +101,7 @@ test('every implemented structure exposes exactly three upgrades', () => {
     POWER_PLANT_UPGRADES,
     DRONE_FACTORY_UPGRADES,
     TURRET_UPGRADES,
+    LASER_ARRAY_UPGRADES,
     RADAR_UPGRADES,
     AMMO_DEPOT_UPGRADES,
   ]) {
@@ -107,7 +110,7 @@ test('every implemented structure exposes exactly three upgrades', () => {
 });
 
 test('every selectable structure is unique for the current build', () => {
-  for (const StructureClass of [PowerPlant, DroneFactory, Turret, Radar, AmmoDepot]) {
+  for (const StructureClass of [PowerPlant, DroneFactory, Turret, LaserArray, Radar, AmmoDepot]) {
     assert.equal(StructureClass.definition.unique, true);
   }
 });
@@ -631,6 +634,100 @@ test('turret explosive rounds trigger on every second projectile', () => {
   structure.onUpdate(2_100);
 
   assert.deepEqual(fired.map((options) => options.explosionRadius), [0, 80, 0, 80]);
+});
+
+function laserArray() {
+  const structure = Object.create(LaserArray.prototype);
+  Object.assign(structure, { x: 360, y: 625, upgrades: new Set(), chargeMs: 0, automaticFireRateMultiplier: 1 });
+  return structure;
+}
+
+function laserEnemy(x, y, health) {
+  return {
+    x, y, displayWidth: 28, displayHeight: 24,
+    health,
+    getHealth() { return this.health; },
+    receiveHit({ damage }) { this.health -= damage; },
+  };
+}
+
+test('laser line finder keeps highest-health priority and selects the path with more hits', () => {
+  const structure = laserArray();
+  const isolated = laserEnemy(210, 320, 5);
+  const aligned = laserEnemy(360, 320, 5);
+  const behind = laserEnemy(360, 220, 2);
+  const further = laserEnemy(360, 130, 1);
+  const enemies = [isolated, aligned, behind, further];
+
+  assert.equal(structure.chooseTarget(enemies), isolated);
+  structure.upgrades.add('line-finder');
+  assert.equal(structure.chooseTarget(enemies), aligned);
+  assert.equal(structure.chooseTarget([laserEnemy(360, 320, 6), ...enemies]).getHealth(), 6);
+});
+
+test('laser deals two base damage to every enemy crossed by its beam', () => {
+  const structure = laserArray();
+  const first = laserEnemy(360, 320, 5);
+  const second = laserEnemy(360, 220, 4);
+  const third = laserEnemy(360, 130, 3);
+  const outside = laserEnemy(210, 220, 4);
+  const line = {
+    setOrigin() { return this; }, setLineWidth() { return this; }, setDepth() { return this; }, destroy() {},
+  };
+  structure.scene = {
+    add: { line: () => line },
+    tweens: { add() {} },
+  };
+
+  assert.equal(structure.fireLaser(first, [first, second, third, outside]), 3);
+  assert.deepEqual([first.health, second.health, third.health, outside.health], [3, 2, 1, 4]);
+});
+
+test('laser charge pauses outside range and recovers after a three-target hit', () => {
+  const structure = laserArray();
+  const player = { x: 360 };
+  let shots = 0;
+  structure.scene = { data: { get: (key) => key === RUN_DATA.player ? player : { getChildren: () => [] } } };
+  structure.refreshChargeDisplay = () => {};
+  structure.chooseTarget = () => ({});
+  structure.fireLaser = () => { shots += 1; return 3; };
+  structure.upgrades.add('energy-recovery');
+
+  structure.onUpdate(0, 1_000);
+  assert.equal(structure.chargeMs, 1_000);
+  player.x = 470;
+  structure.onUpdate(1_000, 2_000);
+  assert.equal(structure.chargeMs, 1_000);
+  structure.upgrades.add('extended-coil');
+  structure.onUpdate(3_000, 799);
+  assert.equal(shots, 0);
+  structure.onUpdate(3_799, 1);
+  assert.equal(shots, 1);
+  assert.equal(structure.chargeMs, 630);
+});
+
+test('laser display shows charge percentage and dims when the player leaves', () => {
+  const structure = laserArray();
+  const fill = {
+    setScale(value) { this.scale = value; return this; },
+    setAlpha(value) { this.alpha = value; return this; },
+    setFillStyle() { return this; },
+  };
+  const label = {
+    setText(value) { this.text = value; return this; },
+    setAlpha() { return this; },
+  };
+  const emitter = { setFillStyle() { return this; }, setStrokeStyle() { return this; } };
+  Object.assign(structure, { chargeFill: fill, chargeText: label, emitter, shownPercent: -1, chargeMs: 900 });
+
+  structure.refreshChargeDisplay(true);
+  assert.equal(fill.scale, 0.5);
+  assert.equal(label.text, '50%');
+  structure.refreshChargeDisplay(false);
+  assert.equal(fill.alpha, 0.45);
+  structure.chargeMs = 1_800;
+  structure.refreshChargeDisplay(true);
+  assert.equal(label.text, 'OK');
 });
 
 test('card quotas follow free slots and never replace missing upgrades with structures', () => {

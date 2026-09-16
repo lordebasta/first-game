@@ -17,8 +17,8 @@ export class StructureSlots {
     this.drawSlots();
   }
 
-  update(time: number): void {
-    this.structures.forEach((structure) => structure?.update(time));
+  update(time: number, delta: number): void {
+    this.structures.forEach((structure) => structure?.update(time, delta));
   }
 
   place(slot: number, StructureClass: StructureConstructor): void {
